@@ -5,17 +5,17 @@ using Discord;
 using Discord.Addons.Hosting;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using DiscordBot.Services;
+using DiscordBot;
+using InformationProcessSupport.Data;
 
-var builder = new HostBuilder()
-               .ConfigureAppConfiguration(x =>
-               {
-                   var config = new ConfigurationBuilder()
+var config = new ConfigurationBuilder()
                        .SetBasePath(Directory.GetCurrentDirectory())
                        .AddJsonFile("Configurations/config.json", false, true)
                        .Build();
 
+var builder = new HostBuilder()
+               .ConfigureAppConfiguration(x =>
+               {
                    x.AddConfiguration(config);
                })
                .ConfigureLogging(x =>
@@ -46,7 +46,9 @@ var builder = new HostBuilder()
                .ConfigureServices((context, services) =>
                {
                    services
-                       .AddHostedService<CommandHandler>();
+                       .AddServices()
+                       .AddRepositories()
+                       .AddAplicationContext(config);
                })
                .UseConsoleLifetime();
 
