@@ -21,7 +21,7 @@ var builder = new HostBuilder()
                .ConfigureLogging(x =>
                {
                    x.AddConsole();
-                   x.SetMinimumLevel(LogLevel.Debug);
+                   x.SetMinimumLevel(LogLevel.Critical);
                })
                .ConfigureDiscordHost((context, config) =>
                {
@@ -31,6 +31,7 @@ var builder = new HostBuilder()
                        AlwaysDownloadUsers = false,
                        MessageCacheSize = 200,
                        GatewayIntents = GatewayIntents.All
+                       //ConnectionTimeout = 1
                    };
 
 #pragma warning disable CS8601 // Возможно, назначение-ссылка, допускающее значение NULL.
@@ -40,7 +41,7 @@ var builder = new HostBuilder()
                .UseCommandService((context, config) =>
                {
                    config.CaseSensitiveCommands = false;
-                   config.LogLevel = LogSeverity.Debug;
+                   config.LogLevel = LogSeverity.Critical;
                    config.DefaultRunMode = RunMode.Async;
                })
                .ConfigureServices((context, services) =>

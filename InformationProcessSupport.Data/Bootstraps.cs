@@ -1,11 +1,15 @@
 ﻿using InformationProcessSupport.Data.Channels;
+using InformationProcessSupport.Data.Groups;
 using InformationProcessSupport.Data.Statistics;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel;
+using InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions;
 using InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions;
+using InformationProcessSupport.Data.TimeOfActionsInTheChannel.SelfDeafenedActions;
+using InformationProcessSupport.Data.TimeOfActionsInTheChannel.StreamActions;
 using InformationProcessSupport.Data.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace InformationProcessSupport.Data
 {
@@ -17,7 +21,11 @@ namespace InformationProcessSupport.Data
                .AddScoped<IChannelRepository, ChannelRepository>()
                .AddScoped<IUserRepository, UserRepository>()
                .AddScoped<IStatisticRepository, StatisticRepository>()
-               .AddScoped<IMicrophoneActionsRepository, MicrophoneActionsRepository>();
+               .AddScoped<IMicrophoneActionsRepository, MicrophoneActionsRepository>()
+               .AddScoped<ISelfDeafenedActionsRepository, SelfDeafenedActionsRepository>()
+               .AddScoped<ICameraActionRepository, CameraActionRepository>()
+               .AddScoped<IStreamActionsRepository, StreamActionsRepository>()
+               .AddScoped<IGroupReposity, GroupReposity>();
 
             return services;
         }
@@ -27,7 +35,9 @@ namespace InformationProcessSupport.Data
 
             services.AddDbContext<ApplicationContext>(options =>
             {
-                options.UseSqlServer(connectionString);
+                options
+                .UseSqlServer(connectionString)
+                .LogTo(Console.WriteLine, LogLevel.Critical);
             }, ServiceLifetime.Transient);
             return services;
         }

@@ -5,8 +5,8 @@
         Task AddAsync(ChannelEntity channel);
         Task AddCollectionAsync(List<ChannelEntity> channels);
         Task UpdateAsync(ChannelEntity channel);
-        Task DeleteAsync(ulong id);
-        Task<bool> ExistsAsync(ulong id, string guildName);
-        Task<ulong> GetChannelIdBuAlternateId(ulong alternateId);
+        Task DeleteAsync(int id);
+        Task<bool> ExistsAsync(ulong id, ulong guildId);
+        Task<int> GetChannelIdBuAlternateId(ulong alternateId);
     }
 }

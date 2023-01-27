@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
 using InformationProcessSupport.Data.Statistics;
+using InformationProcessSupport.Data.ScheduleOfSubjects;
 
 namespace InformationProcessSupport.Data.Channels
 {
@@ -10,7 +10,7 @@ namespace InformationProcessSupport.Data.Channels
         /// <summary>
         /// Primary key in a database (don't used)
         /// </summary>
-        public ulong ChannelId { get; set; }
+        public int ChannelId { get; set; }
         /// <summary>
         /// The real id this channel
         /// </summary>
@@ -28,10 +28,17 @@ namespace InformationProcessSupport.Data.Channels
         /// </summary>
         public string? GuildName { get; set; }
         /// <summary>
+        /// The id of the guild to which this channel belongs
+        /// </summary>
+        public ulong GuildId { get; set; }
+        /// <summary>
         /// One-to-many collection (don't used)
         /// </summary>
         public ICollection<StatisticEntity> StatisticEntities { get; set; }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        public ScheduleEntity ScheduleEntity { get; set; }
         public class ChannelConfiguration : IEntityTypeConfiguration<ChannelEntity>
         {
             public void Configure(EntityTypeBuilder<ChannelEntity> builder)

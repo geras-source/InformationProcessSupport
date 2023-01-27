@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InformationProcessSupport.Data.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20230114221250_AddActionsTables")]
-    partial class AddActionsTables
+    [Migration("20230126210017_AllowNullableInTheUserTable")]
+    partial class AllowNullableInTheUserTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,17 +27,20 @@ namespace InformationProcessSupport.Data.Migrations
 
             modelBuilder.Entity("InformationProcessSupport.Data.Channels.ChannelEntity", b =>
                 {
-                    b.Property<decimal>("ChannelId")
+                    b.Property<int>("ChannelId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<decimal>("ChannelId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ChannelId"));
 
                     b.Property<decimal>("AlternateKey")
                         .HasColumnType("decimal(20,0)");
 
                     b.Property<string>("CategoryType")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("decimal(20,0)");
 
                     b.Property<string>("GuildName")
                         .HasColumnType("nvarchar(max)");
@@ -50,7 +53,55 @@ namespace InformationProcessSupport.Data.Migrations
 
                     b.HasAlternateKey("AlternateKey");
 
-                    b.ToTable("Channels");
+                    b.ToTable("ChannelsEntity");
+                });
+
+            modelBuilder.Entity("InformationProcessSupport.Data.Groups.GroupEntity", b =>
+                {
+                    b.Property<int>("GroupId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupId"));
+
+                    b.Property<decimal>("AlternateKey")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("GroupId");
+
+                    b.ToTable("GroupEntities");
+                });
+
+            modelBuilder.Entity("InformationProcessSupport.Data.ScheduleOfSubjects.ScheduleEntity", b =>
+                {
+                    b.Property<int>("ScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ScheduleId"));
+
+                    b.Property<int>("ChannelId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DayOfTheWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("EndTimeTheSubject")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("StartTimeTheSubject")
+                        .HasColumnType("time");
+
+                    b.HasKey("ScheduleId");
+
+                    b.HasIndex("ChannelId")
+                        .IsUnique();
+
+                    b.ToTable("ScheduleEntities");
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.Statistics.StatisticEntity", b =>
@@ -64,8 +115,8 @@ namespace InformationProcessSupport.Data.Migrations
                     b.Property<string>("Attendance")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("ChannelId")
-                        .HasColumnType("decimal(20,0)");
+                    b.Property<int>("ChannelId")
+                        .HasColumnType("int");
 
                     b.Property<TimeSpan>("ConnectionTime")
                         .HasColumnType("time");
@@ -76,8 +127,8 @@ namespace InformationProcessSupport.Data.Migrations
                     b.Property<DateTime?>("ExitTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("decimal(20,0)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("StatisticId");
 
@@ -129,7 +180,7 @@ namespace InformationProcessSupport.Data.Migrations
                     b.Property<DateTime?>("MicrophoneTurnOffTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("MicrophoneTurnOnTime")
+                    b.Property<DateTime>("MicrophoneTurnOnTime")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("StatistisId")
@@ -156,7 +207,7 @@ namespace InformationProcessSupport.Data.Migrations
                     b.Property<DateTime?>("SelfDeafenedTurnOffTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("SelfDeafenedTurnOnTime")
+                    b.Property<DateTime>("SelfDeafenedTurnOnTime")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("StatistisId")
@@ -198,13 +249,19 @@ namespace InformationProcessSupport.Data.Migrations
 
             modelBuilder.Entity("InformationProcessSupport.Data.Users.UserEntity", b =>
                 {
-                    b.Property<decimal>("UserId")
+                    b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<decimal>("UserId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
                     b.Property<decimal>("AlternateKey")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("GuildId")
                         .HasColumnType("decimal(20,0)");
 
                     b.Property<string>("GuildName")
@@ -221,9 +278,22 @@ namespace InformationProcessSupport.Data.Migrations
 
                     b.HasKey("UserId");
 
-                    b.HasAlternateKey("AlternateKey");
+                    b.HasIndex("GroupId")
+                        .IsUnique()
+                        .HasFilter("[GroupId] IS NOT NULL");
 
-                    b.ToTable("Users");
+                    b.ToTable("UsersEntity");
+                });
+
+            modelBuilder.Entity("InformationProcessSupport.Data.ScheduleOfSubjects.ScheduleEntity", b =>
+                {
+                    b.HasOne("InformationProcessSupport.Data.Channels.ChannelEntity", "ChannelEntity")
+                        .WithOne("ScheduleEntity")
+                        .HasForeignKey("InformationProcessSupport.Data.ScheduleOfSubjects.ScheduleEntity", "ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChannelEntity");
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.Statistics.StatisticEntity", b =>
@@ -289,9 +359,27 @@ namespace InformationProcessSupport.Data.Migrations
                     b.Navigation("StatisticEntities");
                 });
 
+            modelBuilder.Entity("InformationProcessSupport.Data.Users.UserEntity", b =>
+                {
+                    b.HasOne("InformationProcessSupport.Data.Groups.GroupEntity", "GroupEntity")
+                        .WithOne("UserEntity")
+                        .HasForeignKey("InformationProcessSupport.Data.Users.UserEntity", "GroupId");
+
+                    b.Navigation("GroupEntity");
+                });
+
             modelBuilder.Entity("InformationProcessSupport.Data.Channels.ChannelEntity", b =>
                 {
+                    b.Navigation("ScheduleEntity")
+                        .IsRequired();
+
                     b.Navigation("StatisticEntities");
+                });
+
+            modelBuilder.Entity("InformationProcessSupport.Data.Groups.GroupEntity", b =>
+                {
+                    b.Navigation("UserEntity")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.Statistics.StatisticEntity", b =>

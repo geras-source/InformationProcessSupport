@@ -18,7 +18,8 @@ namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions
             public void Configure(EntityTypeBuilder<CameraActionsEntity> builder)
             {
                 builder.HasKey(x => x.CameraActionsId);
-                builder.HasOne(x => x.StatisticEntities)
+                builder
+                    .HasOne(x => x.StatisticEntities)
                     .WithMany(x => x.CameraActionsEntity)
                     .HasForeignKey(x => x.StatistisId);
 

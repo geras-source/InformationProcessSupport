@@ -21,9 +21,9 @@ namespace InformationProcessSupport.Data.Statistics
         /// <summary>
         /// 
         /// </summary>
-        public ulong UserId { get; set; }
+        public int UserId { get; set; }
         public virtual UserEntity UserEntity { get; set; }
-        public ulong ChannelId { get; set; }
+        public int ChannelId { get; set; }
         public virtual ChannelEntity ChannelEntity { get; set; }
         public virtual ICollection<MicrophoneActionsEntity> MicrophoneActionsEntity { get; set; }
         public virtual ICollection<CameraActionsEntity> CameraActionsEntity { get; set; }

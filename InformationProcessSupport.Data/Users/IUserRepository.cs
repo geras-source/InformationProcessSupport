@@ -5,8 +5,8 @@
         Task AddAsync(UserEntity userEntity);
         Task AddCollectionAsync(List<UserEntity> userEntities);
         Task UpdateAsync(UserEntity userEntity);
-        Task DeleteAsync(ulong id);
-        Task<bool> ExistsAsync(ulong id, string guildName);
-        Task<ulong> GetUserIdByAlternateId(ulong alternateId, string guildName);
+        Task DeleteAsync(int id);
+        Task<bool> ExistsAsync(ulong id, ulong guildId);
+        Task<int> GetUserIdByAlternateId(ulong alternateId, ulong guildId);
     }
 }

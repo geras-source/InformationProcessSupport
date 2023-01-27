@@ -28,7 +28,7 @@ namespace InformationProcessSupport.Data.Statistics
             await _context.SaveChangesAsync();
         }
 
-        public async Task<int> GetStatisticIdByUserIdAndChannelId(ulong userId, ulong channelId)
+        public async Task<int> GetStatisticIdByUserIdAndChannelId(int userId, int channelId)
         {
             var entity = await _context.StatisticEntities
                 .FirstOrDefaultAsync(it => it.ExitTime == null && it.UserId == userId && it.ChannelId == channelId);

@@ -6,6 +6,8 @@ using InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions
 using InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions;
 using InformationProcessSupport.Data.TimeOfActionsInTheChannel.StreamActions;
 using InformationProcessSupport.Data.TimeOfActionsInTheChannel.SelfDeafenedActions;
+using InformationProcessSupport.Data.ScheduleOfSubjects;
+using InformationProcessSupport.Data.Groups;
 
 namespace InformationProcessSupport.Data
 {
@@ -24,14 +26,17 @@ namespace InformationProcessSupport.Data
             modelBuilder.ApplyConfiguration(new CameraActionsEntity.CameraActionsConfiguration());
             modelBuilder.ApplyConfiguration(new StreamActionsEntity.StreamActionsConfiguration());
             modelBuilder.ApplyConfiguration(new SelfDeafenedActionsEntity.SelfDeafenedActionsConfiguration());
+            modelBuilder.ApplyConfiguration(new ScheduleEntity.ScheduleConfiguration());
+            modelBuilder.ApplyConfiguration(new GroupEntity.GroupConfiguration());
         }
-        public DbSet<UserEntity> Users { get; set; }
-        public DbSet<ChannelEntity> Channels { get; set; }
+        public DbSet<UserEntity> UsersEntity { get; set; }
+        public DbSet<ChannelEntity> ChannelsEntity { get; set; }
         public DbSet<StatisticEntity> StatisticEntities { get; set; }
         public DbSet<MicrophoneActionsEntity> MicrophoneActionsEntity { get; set; }
         public DbSet<CameraActionsEntity> CameraActionsEntity { get; set; }
         public DbSet<StreamActionsEntity> StreamActionsEntity { get; set; }
         public DbSet<SelfDeafenedActionsEntity> SelfDeafenedActionsEntities { get; set; }
-
+        public DbSet<ScheduleEntity> ScheduleEntities { get; set; }
+        public DbSet<GroupEntity> GroupEntities { get; set; }
     }
 }
