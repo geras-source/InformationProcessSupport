@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>d0097376-7368-48c6-bcaf-2e38b62874e4</UserSecretsId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn></NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605;</WarningsAsErrors>
+    <WarningLevel>6</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn></NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605;</WarningsAsErrors>
+    <WarningLevel>6</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Configurations\config.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Configurations\config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Addons.Hosting" Version="5.2.0" />
+    <PackageReference Include="Discord.Net" Version="3.8.1" />
+    <PackageReference Include="Discord.Net.Commands" Version="3.8.1" />
+    <PackageReference Include="Discord.Net.Core" Version="3.8.1" />
+    <PackageReference Include="Discord.Net.Webhook" Version="3.8.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+    <PackageReference Include="ShellProgressBar" Version="5.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InformationProcessSupport.Data\InformationProcessSupport.Data.csproj" />
+  </ItemGroup>
+
+</Project>
