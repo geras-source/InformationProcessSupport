@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "InformationProcessSupport.DiscordBot": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:22243;http://localhost:22245"
+    }
+  }
+}

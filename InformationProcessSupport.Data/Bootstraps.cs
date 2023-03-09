@@ -1,5 +1,15 @@
-﻿using InformationProcessSupport.Data.Channels;
+﻿using InformationProcessSupport.Core.Channels;
+using InformationProcessSupport.Core.Groups;
+using InformationProcessSupport.Core.ScheduleOfSubjects;
+using InformationProcessSupport.Core.Statistics;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.CameraActions;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.MicrophoneActions;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.SelfDeafenedActions;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.StreamActions;
+using InformationProcessSupport.Core.Users;
+using InformationProcessSupport.Data.Channels;
 using InformationProcessSupport.Data.Groups;
+using InformationProcessSupport.Data.ScheduleOfSubjects;
 using InformationProcessSupport.Data.Statistics;
 using InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions;
 using InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions;
@@ -25,7 +35,8 @@ namespace InformationProcessSupport.Data
                .AddScoped<ISelfDeafenedActionsRepository, SelfDeafenedActionsRepository>()
                .AddScoped<ICameraActionRepository, CameraActionRepository>()
                .AddScoped<IStreamActionsRepository, StreamActionsRepository>()
-               .AddScoped<IGroupReposity, GroupReposity>();
+               .AddScoped<IGroupRepository, GroupRepository>()
+               .AddScoped<IScheduleRepository, ScheduleRepository>();
 
             return services;
         }

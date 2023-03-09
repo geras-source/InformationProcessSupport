@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InformationProcessSupport.Core.TimeOfActionsInTheChannel.MicrophoneActions;
+using Microsoft.EntityFrameworkCore;
 
 namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions
 {
@@ -12,18 +13,18 @@ namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneAct
 
         public async Task AddMicrophoneTurnOffTimeAsync(MicrophoneActionsEntity microphoneActionsEntity)
         {
-            var entity = new MicrophoneActionsEntity
+            var entity = new MicrophoneActionsModel
             {
                 StatistisId = microphoneActionsEntity.StatistisId,
                 MicrophoneTurnOffTime = microphoneActionsEntity.MicrophoneTurnOffTime
             };
 
-            await _context.MicrophoneActionsEntity.AddAsync(entity);
+            await _context.MicrophoneActionEntities.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
         public async Task AddendumAMicrophoneOperatingTime(MicrophoneActionsEntity microphoneActionsEntity)
         {
-            var entity = await _context.MicrophoneActionsEntity
+            var entity = await _context.MicrophoneActionEntities
                 .FirstOrDefaultAsync(it => it.StatistisId == microphoneActionsEntity.StatistisId && it.MicrophoneOperatingTime == null);
             
             if (entity != null)

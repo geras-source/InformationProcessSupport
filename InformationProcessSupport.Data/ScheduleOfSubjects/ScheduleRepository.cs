@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InformationProcessSupport.Core.ScheduleOfSubjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,14 +14,32 @@ namespace InformationProcessSupport.Data.ScheduleOfSubjects
         {
             _context = applicationContext;
         }
+
+        public async Task AddScheduleCollectionAsync(ICollection<ScheduleEntity> scheduleCollection)
+        {
+            var entities = scheduleCollection.Select(x => new ScheduleModel
+            {
+                SubjectName = x.SubjectName,
+                StartTimeTheSubject = x.StartTimeTheSubject,
+                EndTimeTheSubject = x.EndTimeTheSubject,
+                DayOfTheWeek = x.DayOfTheWeek,
+                GroupId = x.GroupId,
+                ChannelId = x.ChannelId
+            }).ToList();
+            await _context.ScheduleEntities.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task AddScheduleForOneSubject(ScheduleEntity scheduleEntity)
         {
-            var entity = new ScheduleEntity
+            var entity = new ScheduleModel
             {
+                SubjectName = scheduleEntity.SubjectName,
                 StartTimeTheSubject = scheduleEntity.StartTimeTheSubject,
                 EndTimeTheSubject = scheduleEntity.EndTimeTheSubject,
                 ChannelId = scheduleEntity.ChannelId,
-                DayOfTheWeek = scheduleEntity.DayOfTheWeek
+                DayOfTheWeek = scheduleEntity.DayOfTheWeek,
+                GroupId= scheduleEntity.GroupId
             };
             await _context.AddAsync(entity);
             await _context.SaveChangesAsync();

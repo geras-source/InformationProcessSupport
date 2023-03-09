@@ -15,7 +15,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\InformationProcessSupport.Core\InformationProcessSupport.Core.csproj" />
     <ProjectReference Include="..\InformationProcessSupport.Data\InformationProcessSupport.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
 
 </Project>

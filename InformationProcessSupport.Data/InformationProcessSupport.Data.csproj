@@ -15,4 +15,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\InformationProcessSupport.Core\InformationProcessSupport.Core.csproj" />
+  </ItemGroup>
+
 </Project>
