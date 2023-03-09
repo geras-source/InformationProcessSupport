@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InformationProcessSupport.Core.TimeOfActionsInTheChannel.StreamActions;
+using Microsoft.EntityFrameworkCore;
 
 namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.StreamActions
 {
@@ -11,19 +12,19 @@ namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.StreamActions
         }
         public async Task AddStreamActionTurnOnTimeAsync(StreamActionsEntity streamActionsEntity)
         {
-            var entity = new StreamActionsEntity
+            var entity = new StreamActionsModel
             {
                 StatistisId = streamActionsEntity.StatistisId,
                 StreamTurnOnTime = streamActionsEntity.StreamTurnOnTime
             };
 
-            await _context.StreamActionsEntity.AddAsync(entity);
+            await _context.StreamActionEntities.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task AddendumStreamActionOperatingTime(StreamActionsEntity streamActionsEntity)
         {
-            var entity = await _context.StreamActionsEntity
+            var entity = await _context.StreamActionEntities
                .FirstOrDefaultAsync(it => it.StatistisId == streamActionsEntity.StatistisId && it.StreamOperationTime == null);
 
             if (entity != null)

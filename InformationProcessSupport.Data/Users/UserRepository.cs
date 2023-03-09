@@ -1,6 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using System.Reflection.Metadata;
+﻿using InformationProcessSupport.Core.Users;
+using Microsoft.EntityFrameworkCore;
 
 namespace InformationProcessSupport.Data.Users
 {
@@ -18,7 +17,7 @@ namespace InformationProcessSupport.Data.Users
         /// <returns></returns>
         public async Task AddAsync(UserEntity userEntity)
         {
-            var entity = new UserEntity
+            var entity = new UserModel
             {
                 AlternateKey = userEntity.AlternateKey,
                 Name = userEntity.Name,
@@ -27,7 +26,7 @@ namespace InformationProcessSupport.Data.Users
                 GuildId = userEntity.GuildId,
                 GuildName= userEntity.GuildName
             };
-            await _context.UsersEntity.AddAsync(entity);
+            await _context.UserEntities.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
         /// <summary>
@@ -38,7 +37,7 @@ namespace InformationProcessSupport.Data.Users
         /// <returns></returns>
         public async Task<bool> ExistsAsync(ulong id, ulong guildId)
         {
-            if (await _context.UsersEntity.AnyAsync(x => x.AlternateKey == id && x.GuildId == guildId))
+            if (await _context.UserEntities.AnyAsync(x => x.AlternateKey == id && x.GuildId == guildId))
             {
                 return true;
             }
@@ -52,7 +51,7 @@ namespace InformationProcessSupport.Data.Users
         /// <returns></returns>
         public async Task<int> GetUserIdByAlternateId(ulong alternateId, ulong guildId)
         {
-            var userId = await _context.UsersEntity.SingleAsync(x => x.AlternateKey == alternateId && x.GuildId == guildId);
+            var userId = await _context.UserEntities.SingleAsync(x => x.AlternateKey == alternateId && x.GuildId == guildId);
 
             return userId.UserId;
         }
@@ -64,11 +63,11 @@ namespace InformationProcessSupport.Data.Users
         /// <returns></returns>
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.UsersEntity.SingleOrDefaultAsync(x => x.UserId == id);
+            var entity = await _context.UserEntities.SingleOrDefaultAsync(x => x.UserId == id);
             
             if(entity != null)
             {
-                _context.UsersEntity.Remove(entity);
+                _context.UserEntities.Remove(entity);
                 await _context.SaveChangesAsync();
             }
         }
@@ -79,7 +78,7 @@ namespace InformationProcessSupport.Data.Users
         /// <returns></returns>
         public async Task UpdateAsync(UserEntity userEntity)
         {
-            var entity = await _context.UsersEntity.SingleAsync(x => x.UserId == userEntity.UserId);
+            var entity = await _context.UserEntities.SingleAsync(x => x.UserId == userEntity.UserId);
             if (entity != null)
             {
                 entity.Name = userEntity.Name;
@@ -95,7 +94,17 @@ namespace InformationProcessSupport.Data.Users
         /// <returns></returns>
         public async Task AddCollectionAsync(List<UserEntity> userEntities)
         {
-            await _context.UsersEntity.AddRangeAsync(userEntities);
+            var entities = userEntities.Select(x => new UserModel
+            {
+                AlternateKey = x.AlternateKey,
+                Name = x.Name,
+                Nickname = x.Nickname,
+                Roles = x.Roles,
+                GuildId = x.GuildId,
+                GuildName = x.GuildName,
+                GroupId = x.GroupId
+            });
+            await _context.UserEntities.AddRangeAsync(entities);
             await _context.SaveChangesAsync();
         }
     }

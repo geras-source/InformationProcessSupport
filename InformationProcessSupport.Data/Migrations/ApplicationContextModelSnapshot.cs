@@ -22,7 +22,7 @@ namespace InformationProcessSupport.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("InformationProcessSupport.Data.Channels.ChannelEntity", b =>
+            modelBuilder.Entity("InformationProcessSupport.Data.Channels.ChannelModel", b =>
                 {
                     b.Property<int>("ChannelId")
                         .ValueGeneratedOnAdd()
@@ -50,7 +50,7 @@ namespace InformationProcessSupport.Data.Migrations
 
                     b.HasAlternateKey("AlternateKey");
 
-                    b.ToTable("ChannelsEntity");
+                    b.ToTable("ChannelEntities");
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.Groups.GroupEntity", b =>
@@ -177,7 +177,7 @@ namespace InformationProcessSupport.Data.Migrations
 
                     b.HasIndex("StatistisId");
 
-                    b.ToTable("CameraActionsEntity");
+                    b.ToTable("CameraActionEntities");
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions.MicrophoneActionsEntity", b =>
@@ -204,7 +204,7 @@ namespace InformationProcessSupport.Data.Migrations
 
                     b.HasIndex("StatistisId");
 
-                    b.ToTable("MicrophoneActionsEntity");
+                    b.ToTable("MicrophoneActionEntities");
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.TimeOfActionsInTheChannel.SelfDeafenedActions.SelfDeafenedActionsEntity", b =>
@@ -258,7 +258,7 @@ namespace InformationProcessSupport.Data.Migrations
 
                     b.HasIndex("StatistisId");
 
-                    b.ToTable("StreamActionsEntity");
+                    b.ToTable("StreamActionEntities");
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.Users.UserEntity", b =>
@@ -294,12 +294,12 @@ namespace InformationProcessSupport.Data.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("UsersEntity");
+                    b.ToTable("UserEntities");
                 });
 
             modelBuilder.Entity("InformationProcessSupport.Data.ScheduleOfSubjects.ScheduleEntity", b =>
                 {
-                    b.HasOne("InformationProcessSupport.Data.Channels.ChannelEntity", "ChannelEntity")
+                    b.HasOne("InformationProcessSupport.Data.Channels.ChannelModel", "ChannelEntity")
                         .WithOne("ScheduleEntity")
                         .HasForeignKey("InformationProcessSupport.Data.ScheduleOfSubjects.ScheduleEntity", "ChannelId");
 
@@ -316,7 +316,7 @@ namespace InformationProcessSupport.Data.Migrations
 
             modelBuilder.Entity("InformationProcessSupport.Data.Statistics.StatisticEntity", b =>
                 {
-                    b.HasOne("InformationProcessSupport.Data.Channels.ChannelEntity", "ChannelEntity")
+                    b.HasOne("InformationProcessSupport.Data.Channels.ChannelModel", "ChannelEntity")
                         .WithMany("StatisticEntities")
                         .HasForeignKey("ChannelId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -386,7 +386,7 @@ namespace InformationProcessSupport.Data.Migrations
                     b.Navigation("GroupEntity");
                 });
 
-            modelBuilder.Entity("InformationProcessSupport.Data.Channels.ChannelEntity", b =>
+            modelBuilder.Entity("InformationProcessSupport.Data.Channels.ChannelModel", b =>
                 {
                     b.Navigation("ScheduleEntity")
                         .IsRequired();

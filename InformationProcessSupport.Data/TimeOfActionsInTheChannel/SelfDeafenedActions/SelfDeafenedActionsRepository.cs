@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InformationProcessSupport.Core.TimeOfActionsInTheChannel.SelfDeafenedActions;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.SelfDeafenedActions
@@ -12,7 +13,7 @@ namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.SelfDeafenedA
         }
         public async Task AddSelfDeafenedTurnOffTimeAsync(SelfDeafenedActionsEntity selfDeafenedActionsEntity)
         {
-            var entity = new SelfDeafenedActionsEntity
+            var entity = new SelfDeafenedActionsModel
             {
                 StatistisId = selfDeafenedActionsEntity.StatistisId,
                 SelfDeafenedTurnOffTime = selfDeafenedActionsEntity.SelfDeafenedTurnOffTime

@@ -6,17 +6,18 @@ using System.Reflection;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using System.Data;
-using InformationProcessSupport.Data.Channels;
-using InformationProcessSupport.Data.Users;
-using InformationProcessSupport.Data.Statistics;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.SelfDeafenedActions;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.StreamActions;
 using InformationProcessSupport.Data.Groups;
 using ShellProgressBar;
+using InformationProcessSupport.Core.Channels;
+using InformationProcessSupport.Core.Groups;
+using InformationProcessSupport.Core.Users;
+using InformationProcessSupport.Core.Statistics;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.CameraActions;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.MicrophoneActions;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.SelfDeafenedActions;
+using InformationProcessSupport.Core.TimeOfActionsInTheChannel.StreamActions;
 
 namespace DiscordBot.Services
 {
@@ -34,14 +35,14 @@ namespace DiscordBot.Services
         private readonly ICameraActionRepository _cameraActionRepository;
         private readonly IStreamActionsRepository _streamActionsRepository;
         private readonly Discord.ConnectionState _connectionState;
-        private readonly IGroupReposity _groupReposity;
-        private readonly Regex _regex = new Regex(@"^(\w{2}-\d{2})$");
+        private readonly IGroupRepository _groupReposity;
+        private readonly Regex _regex = new Regex(@"^(\w{3}-\d{2})$");
 
         public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService service,
                                 IConfiguration config, IChannelRepository channelRepository, IUserRepository userRepository, 
                                 IStatisticRepository statisticRepository, IMicrophoneActionsRepository microphoneActionsRepository,
                                 ISelfDeafenedActionsRepository selfDeafenedActionsRepository, ICameraActionRepository cameraActionRepository,
-                                IStreamActionsRepository streamActionsRepository, IGroupReposity groupReposity)
+                                IStreamActionsRepository streamActionsRepository, IGroupRepository groupReposity)
         {
             _provider = provider;
             _client = client;
@@ -143,6 +144,41 @@ namespace DiscordBot.Services
             var guild = _client.Guilds;
             foreach (var data in guild)
             {
+                //// Let's build a guild command! We're going to need a guild so lets just put that in a variable.
+                
+
+                //// Next, lets create our slash command builder. This is like the embed builder but for slash commands.
+                //var guildCommand = new SlashCommandBuilder();
+
+                //// Note: Names have to be all lowercase and match the regular expression ^[\w-]{3,32}$
+                //guildCommand.WithName("first-command");
+
+                //// Descriptions can have a max length of 100.
+                //guildCommand.WithDescription("This is my first guild slash command!");
+
+                //// Let's do our global command
+                //var globalCommand = new SlashCommandBuilder();
+                //globalCommand.WithName("first-global-command");
+                //globalCommand.WithDescription("This is my first global slash command");
+
+                //try
+                //{
+                //    // Now that we have our builder, we can call the CreateApplicationCommandAsync method to make our slash command.
+                //    await data.CreateApplicationCommandAsync(guildCommand.Build());
+
+                //    // With global commands we don't need the guild.
+                //    //await data.CreateGlobalApplicationCommandAsync(globalCommand.Build());
+                //    //// Using the ready event is a simple implementation for the sake of the example. Suitable for testing and development.
+                //    //// For a production bot, it is recommended to only run the CreateGlobalApplicationCommandAsync() once for each command.
+                //}
+                //catch (ApplicationCommandException exception)
+                //{
+                //    // If our command was invalid, we should catch an ApplicationCommandException. This exception contains the path of the error as well as the error message. You can serialize the Error field in the exception to get a visual of where your error is.
+                //    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
+
+                //    // You can send this error somewhere or just print it to the console, for this example we're just going to print it.
+                //    Console.WriteLine(json);
+                //}
                 //var guildCommand = new SlashCommandBuilder();
 
                 //// Note: Names have to be all lowercase and match the regular expression ^[\w-]{3,32}$
@@ -179,13 +215,13 @@ namespace DiscordBot.Services
                 
                 if(groups.Count() != 0)
                 {
-                    var groupEntities = new List<GroupEntity>();
+                    var groupEntities = new List<GroupModel>();
                     var current = 0;
                     using (var pbar = new ProgressBar(groups.Count(), "Saving groups"))
                     {
                         foreach (var group in groups)
                         {
-                            var entity = new GroupEntity
+                            var entity = new GroupModel
                             {
                                 GroupName = group.Name,
                                 AlternateKey = group.Id,
@@ -207,7 +243,7 @@ namespace DiscordBot.Services
                     foreach (var user in users)
                     {
                         var exists = _userRepository.ExistsAsync(user.Id, data.Id).Result;
-                        if (exists == true)
+                        if (exists)
                         {
                             continue;
                         }
@@ -248,7 +284,7 @@ namespace DiscordBot.Services
                     foreach (var channel in channels)
                     {
                         var exists = _channelRepository.ExistsAsync(channel.Id, data.Id).Result;
-                        if (exists == true)
+                        if (exists)
                         {
                             continue;
                         }
@@ -285,27 +321,28 @@ namespace DiscordBot.Services
 
         private async Task _client_SlashCommandExecuted(SocketSlashCommand arg)
         {
-            var embed = new EmbedBuilder()
-                .WithColor(Color.DarkPurple)
-                .WithTitle("Information")
-               ;
+            await arg.RespondAsync($"You executed {arg.Data.Name}", ephemeral: true);
+            //var embed = new EmbedBuilder()
+            //    .WithColor(Color.DarkPurple)
+            //    .WithTitle("Information")
+            //   ;
 
-            await arg.DeferAsync();
-            await arg.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
-            Thread.Sleep(1000);
-            var embed1 = new EmbedBuilder()
-                .WithColor(Color.DarkPurple)
-                .WithTitle("Information")
-                .WithImageUrl(_client.GetUser(266642180720820224).GetAvatarUrl())
-                .AddField("Комманды", "!test 'Channel name'\n !mute \n", false)
-                .AddField("Created by:", _client.GetUser(266642180720820224), true)
-                .AddField("Powered by:", ".NET Framework", true);
-            await arg.ModifyOriginalResponseAsync(x => x.Embed = embed1.Build());
+            ////await arg.DeferAsync();
+            //await arg.RespondAsync(embed: embed.Build(), ephemeral: true);
+            //Thread.Sleep(1000);
+            //var embed1 = new EmbedBuilder()
+            //    .WithColor(Color.DarkPurple)
+            //    .WithTitle("Information")
+            //    .WithImageUrl(_client.GetUser(266642180720820224).GetAvatarUrl())
+            //    .AddField("Комманды", "!test 'Channel name'\n !mute \n", false)
+            //    .AddField("Created by:", _client.GetUser(266642180720820224), true)
+            //    .AddField("Powered by:", ".NET Framework", true);
+            //await arg.ModifyOriginalResponseAsync(x => x.Embed = embed1.Build());
         }
 
         private async Task OnChannelUpdated(SocketChannel oldSocketChannel, SocketChannel newSocketChannel)
         {
-            var channelId = await _channelRepository.GetChannelIdBuAlternateId(oldSocketChannel.Id);
+            var channelId = await _channelRepository.GetChannelIdByAlternateId(oldSocketChannel.Id);
             var guild = _client.Guilds.First(x => x.Channels.First(x => x.Id == newSocketChannel.Id && x.Name == newSocketChannel.ToString()) == newSocketChannel);
             var entity = new ChannelEntity
             {
@@ -319,7 +356,7 @@ namespace DiscordBot.Services
 
         private async Task OnChannelDestroyed(SocketChannel socketChannel)
         {
-            var channelId = await _channelRepository.GetChannelIdBuAlternateId(socketChannel.Id);
+            var channelId = await _channelRepository.GetChannelIdByAlternateId(socketChannel.Id);
             await _channelRepository.DeleteAsync(channelId);
         }
 
@@ -386,16 +423,16 @@ namespace DiscordBot.Services
             if (newVoiceState.VoiceChannel != null && oldVoiceState.VoiceChannel == null | oldVoiceState.VoiceChannel?.Name != newVoiceState.VoiceChannel.Name)
             {
                 Console.WriteLine($"User (Name: {user.Username} ID: {user.Id}) join a VoiceChannel (Name: {newVoiceState.VoiceChannel.Name} ID: {newVoiceState.VoiceChannel.Id})");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(newVoiceState.VoiceChannel.Id);
-                //var entity = new StatisticEntity
-                //{
-                //    UserId = userId,
-                //    ChannelId = channelId,
-                //    EntryTime = GetTimeAsync().Result
-                //};
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
+                var entity = new StatisticEntity
+                {
+                    UserId = userId,
+                    ChannelId = channelId,
+                    EntryTime = GetTimeAsync().Result
+                };
 
-                //await _statisticRepository.AddAsync(entity);
+                await _statisticRepository.AddAsync(entity);
             }
             ///<summary>
             /// User left
@@ -403,17 +440,17 @@ namespace DiscordBot.Services
             if (oldVoiceState.VoiceChannel != null && newVoiceState.VoiceChannel == null | oldVoiceState.VoiceChannel.Name != newVoiceState.VoiceChannel?.Name)
             {
                 Console.WriteLine($"User (Name: {user.Username} ID: {user.Id}) left from a VoiceChannel (Name: {oldVoiceState.VoiceChannel.Name} ID: {oldVoiceState.VoiceChannel.Id})");
-                //var userId = await _userRepository.GetUserIdByAlternateId(user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(oldVoiceState.VoiceChannel.Id);
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
+                var time = GetTimeAsync().Result;
 
-                //var entity = new StatisticEntity
-                //{
-                //    UserId = userId,
-                //    ChannelId = channelId,
-                //    ExitTime = time
-                //};
-                //await _statisticRepository.UpdateConnectionTimeAsync(entity);
+                var entity = new StatisticEntity
+                {
+                    UserId = userId,
+                    ChannelId = channelId,
+                    ExitTime = time
+                };
+                await _statisticRepository.UpdateConnectionTimeAsync(entity);
             }
             ///<summary>
             /// замучен полностью (иконка с наушниками)
@@ -421,32 +458,32 @@ namespace DiscordBot.Services
             if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfDeafened == true && oldVoiceState.IsSelfDeafened == false)
             {
                 Console.WriteLine("SelfDeafened");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(oldVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new SelfDeafenedActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    SelfDeafenedTurnOffTime = time
-                //};
-                //await _selfDeafenedActionsRepository.AddSelfDeafenedTurnOffTimeAsync(entity);
+                var entity = new SelfDeafenedActionsEntity
+                {
+                    StatistisId = statisticId,
+                    SelfDeafenedTurnOffTime = time
+                };
+                await _selfDeafenedActionsRepository.AddSelfDeafenedTurnOffTimeAsync(entity);
             }
             else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfDeafened == false && oldVoiceState.IsSelfDeafened == true)
             {
                 Console.WriteLine("UnSelfDeafened");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(newVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new SelfDeafenedActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    SelfDeafenedTurnOnTime = time
-                //};
-                //await _selfDeafenedActionsRepository.AddendumASelfDeafenedOperatingTime(entity);
+                var entity = new SelfDeafenedActionsEntity
+                {
+                    StatistisId = statisticId,
+                    SelfDeafenedTurnOnTime = time
+                };
+                await _selfDeafenedActionsRepository.AddendumASelfDeafenedOperatingTime(entity);
             }
             ///< summary >
             /// Self muted
@@ -455,32 +492,32 @@ namespace DiscordBot.Services
                 && newVoiceState.IsSelfDeafened == false)
             {
                 Console.WriteLine($"Muted :{user.Username}");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(oldVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new MicrophoneActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    MicrophoneTurnOffTime = time
-                //};
-                //await _microphoneActionsRepository.AddMicrophoneTurnOffTimeAsync(entity);
+                var entity = new MicrophoneActionsEntity
+                {
+                    StatistisId = statisticId,
+                    MicrophoneTurnOffTime = time
+                };
+                await _microphoneActionsRepository.AddMicrophoneTurnOffTimeAsync(entity);
             }
-            else if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfMuted == false && oldVoiceState.IsSelfMuted == true)
+            else if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfMuted == false && oldVoiceState.IsSelfMuted == true && oldVoiceState.IsSelfDeafened == false)
             {
                 Console.WriteLine($"UnMuted :{user.Username}");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(oldVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new MicrophoneActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    MicrophoneTurnOnTime = time
-                //};
-                //await _microphoneActionsRepository.AddendumAMicrophoneOperatingTime(entity);
+                var entity = new MicrophoneActionsEntity
+                {
+                    StatistisId = statisticId,
+                    MicrophoneTurnOnTime = time
+                };
+                await _microphoneActionsRepository.AddendumAMicrophoneOperatingTime(entity);
             }
             ///<summary>
             /// Camera turn on/off
@@ -488,34 +525,34 @@ namespace DiscordBot.Services
             if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsVideoing == true && oldVoiceState.IsVideoing == false)
             {
                 Console.WriteLine($"{user.Username} turn on the camera in {newVoiceState.VoiceChannel.Name}");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(newVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new CameraActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    CameraTurnOnTime = time
-                //};
+                var entity = new CameraActionsEntity
+                {
+                    StatistisId = statisticId,
+                    CameraTurnOnTime = time
+                };
 
-                //await _cameraActionRepository.AddCameraActionTurnOnTimeAsync(entity);
+                await _cameraActionRepository.AddCameraActionTurnOnTimeAsync(entity);
             }
             else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsVideoing == false && oldVoiceState.IsVideoing == true)
             {
                 Console.WriteLine($"{user.Username} turn off the camera in {newVoiceState.VoiceChannel.Name}");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(newVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new CameraActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    CameraTurnOffTime = time
-                //};
+                var entity = new CameraActionsEntity
+                {
+                    StatistisId = statisticId,
+                    CameraTurnOffTime = time
+                };
 
-                //await _cameraActionRepository.AddendumCameraActionOperatingTime(entity);
+                await _cameraActionRepository.AddendumCameraActionOperatingTime(entity);
             }
             ///<summary>
             /// Stream turn on/off
@@ -523,32 +560,32 @@ namespace DiscordBot.Services
             if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsStreaming == true && oldVoiceState.IsStreaming == false)
             {
                 Console.WriteLine($"{user.Username} turn on the stream in {newVoiceState.VoiceChannel.Name}");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(newVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new StreamActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    StreamTurnOnTime = time
-                //};
-                //await _streamActionsRepository.AddStreamActionTurnOnTimeAsync(entity);
+                var entity = new StreamActionsEntity
+                {
+                    StatistisId = statisticId,
+                    StreamTurnOnTime = time
+                };
+                await _streamActionsRepository.AddStreamActionTurnOnTimeAsync(entity);
             }
             else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsStreaming == false && oldVoiceState.IsStreaming == true)
             {
                 Console.WriteLine($"{user.Username} turn off the stream in {newVoiceState.VoiceChannel.Name}");
-                //var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                //var channelId = await _channelRepository.GetChannelIdBuAlternateId(newVoiceState.VoiceChannel.Id);
-                //var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                //var time = GetTimeAsync().Result;
+                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
+                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
+                var time = GetTimeAsync().Result;
 
-                //var entity = new StreamActionsEntity
-                //{
-                //    StatistisId = statisticId,
-                //    StreamTurnOffTime = time
-                //};
-                //await _streamActionsRepository.AddendumStreamActionOperatingTime(entity);
+                var entity = new StreamActionsEntity
+                {
+                    StatistisId = statisticId,
+                    StreamTurnOffTime = time
+                };
+                await _streamActionsRepository.AddendumStreamActionOperatingTime(entity);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InformationProcessSupport.Core.TimeOfActionsInTheChannel.CameraActions;
+using Microsoft.EntityFrameworkCore;
 
 namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions
 {
@@ -11,19 +12,19 @@ namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions
         }
         public async Task AddCameraActionTurnOnTimeAsync(CameraActionsEntity cameraActionsEntity)
         {
-            var entity = new CameraActionsEntity
+            var entity = new CameraActionsModel
             {
                 StatistisId = cameraActionsEntity.StatistisId,
                 CameraTurnOnTime = cameraActionsEntity.CameraTurnOnTime
             };
 
-            await _context.CameraActionsEntity.AddAsync(entity);
+            await _context.CameraActionEntities.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task AddendumCameraActionOperatingTime(CameraActionsEntity cameraActionsEntity)
         {
-            var entity = await _context.CameraActionsEntity
+            var entity = await _context.CameraActionEntities
                .FirstOrDefaultAsync(it => it.StatistisId == cameraActionsEntity.StatistisId && it.CameraOperationTime == null);
 
             if (entity != null)
