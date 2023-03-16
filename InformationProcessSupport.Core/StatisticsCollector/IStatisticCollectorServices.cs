@@ -9,6 +9,6 @@ namespace InformationProcessSupport.Core.StatisticsCollector
     public interface IStatisticCollectorServices
     {
         Task CreateReportByTemplate();
-        Task CreaCreateReport();
+        Task CreateReportByDate(string date);
     }
 }

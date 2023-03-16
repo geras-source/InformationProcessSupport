@@ -8,5 +8,6 @@
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(ulong id, ulong guildId);
         Task<int> GetUserIdByAlternateId(ulong alternateId, ulong guildId);
+        Task<ICollection<UserEntity>> GetUserCollectionAsync();
     }
 }
