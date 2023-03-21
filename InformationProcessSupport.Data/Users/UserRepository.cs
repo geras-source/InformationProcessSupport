@@ -107,5 +107,16 @@ namespace InformationProcessSupport.Data.Users
             await _context.UserEntities.AddRangeAsync(entities);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<ICollection<UserEntity>> GetUserCollectionAsync()
+        {
+            var entities = await _context.UserEntities.Select(it => new UserEntity
+            {
+                UserId = it.UserId,
+                Name = it.Name,
+                Nickname = it.Nickname
+            }).ToListAsync();
+            return entities;
+        }
     }
 }

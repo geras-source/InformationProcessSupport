@@ -48,7 +48,7 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
         [HttpPost("PostGroupCollection")]
         public async Task<ActionResult> PostGroupToDB(ICollection<GroupDto> groupCollection)
         {
-            _statisticCollectorServices.CreateReportByTemplate();
+            await _statisticCollectorServices.CreateReportByDate("2023.04.02");
             if (groupCollection == null)
             {
                 return NotFound();

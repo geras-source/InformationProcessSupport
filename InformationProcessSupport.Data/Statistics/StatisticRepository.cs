@@ -1,6 +1,7 @@
 ﻿using InformationProcessSupport.Core.Statistics;
 using InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace InformationProcessSupport.Data.Statistics
 {
@@ -28,7 +29,10 @@ namespace InformationProcessSupport.Data.Statistics
             await _context.StatisticEntities.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<ICollection<StatisticEntity>> GetStatisticCollectionsAsync()
         {
             var entities = await _context.StatisticEntities.Select(it => new StatisticEntity
@@ -41,6 +45,24 @@ namespace InformationProcessSupport.Data.Statistics
                 ChannelId = it.ChannelId
             }).ToListAsync();
             return entities;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public async Task<ICollection<StatisticEntity>> GetStatisticCollectionsByDateAsync(string date)
+        {
+            var entity = await _context.StatisticEntities.Where(x => x.EntryTime.Date == DateTime.Parse(date).Date).Select(it => new StatisticEntity
+            {
+                ConnectionTime = it.ConnectionTime,
+                EntryTime = it.EntryTime,
+                ExitTime = it.ExitTime,
+                Attendance = it.Attendance,
+                UserId = it.UserId,
+                ChannelId = it.ChannelId
+            }).ToListAsync();
+            return entity;
         }
 
         public async Task<int> GetStatisticIdByUserIdAndChannelId(int userId, int channelId)
