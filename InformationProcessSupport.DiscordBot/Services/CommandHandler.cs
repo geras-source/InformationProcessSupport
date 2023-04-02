@@ -18,6 +18,8 @@ using InformationProcessSupport.Core.TimeOfActionsInTheChannel.CameraActions;
 using InformationProcessSupport.Core.TimeOfActionsInTheChannel.MicrophoneActions;
 using InformationProcessSupport.Core.TimeOfActionsInTheChannel.SelfDeafenedActions;
 using InformationProcessSupport.Core.TimeOfActionsInTheChannel.StreamActions;
+using Microsoft.Extensions.DependencyInjection;
+using InformationProcessSupport.Core.ScheduleOfSubjects;
 
 namespace DiscordBot.Services
 {
@@ -36,13 +38,14 @@ namespace DiscordBot.Services
         private readonly IStreamActionsRepository _streamActionsRepository;
         private readonly Discord.ConnectionState _connectionState;
         private readonly IGroupRepository _groupReposity;
+        private readonly IScheduleRepository _scheduleRepository;
         private readonly Regex _regex = new Regex(@"^(\w{3}-\d{2})$");
 
         public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService service,
                                 IConfiguration config, IChannelRepository channelRepository, IUserRepository userRepository, 
                                 IStatisticRepository statisticRepository, IMicrophoneActionsRepository microphoneActionsRepository,
                                 ISelfDeafenedActionsRepository selfDeafenedActionsRepository, ICameraActionRepository cameraActionRepository,
-                                IStreamActionsRepository streamActionsRepository, IGroupRepository groupReposity)
+                                IStreamActionsRepository streamActionsRepository, IGroupRepository groupReposity, IScheduleRepository scheduleRepository)
         {
             _provider = provider;
             _client = client;
@@ -56,6 +59,7 @@ namespace DiscordBot.Services
             _cameraActionRepository = cameraActionRepository;
             _streamActionsRepository = streamActionsRepository;
             _groupReposity = groupReposity;
+            _scheduleRepository = scheduleRepository;
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
@@ -422,17 +426,24 @@ namespace DiscordBot.Services
             ///</summary>>
             if (newVoiceState.VoiceChannel != null && oldVoiceState.VoiceChannel == null | oldVoiceState.VoiceChannel?.Name != newVoiceState.VoiceChannel.Name)
             {
-                Console.WriteLine($"User (Name: {user.Username} ID: {user.Id}) join a VoiceChannel (Name: {newVoiceState.VoiceChannel.Name} ID: {newVoiceState.VoiceChannel.Id})");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+                TimeOnly timeOnly = TimeOnly.Parse("14:20:00");
                 var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
-                var entity = new StatisticEntity
-                {
-                    UserId = userId,
-                    ChannelId = channelId,
-                    EntryTime = GetTimeAsync().Result
-                };
+                var schedulemodel = await _scheduleRepository.GetScheduleByChannelIdAsync(channelId);
 
-                await _statisticRepository.AddAsync(entity);
+                if(timeOnly > TimeOnly.FromTimeSpan(schedulemodel.StartTimeTheSubject) && timeOnly < TimeOnly.FromTimeSpan(schedulemodel.EndTimeTheSubject))
+                {
+                    Console.WriteLine($"User (Name: {user.Username} ID: {user.Id}) join a VoiceChannel (Name: {newVoiceState.VoiceChannel.Name} ID: {newVoiceState.VoiceChannel.Id})");
+                    var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
+
+                    var entity = new StatisticEntity
+                    {
+                        UserId = userId,
+                        ChannelId = channelId,
+                        EntryTime = GetTimeAsync().Result
+                    };
+
+                    await _statisticRepository.AddAsync(entity);
+                }
             }
             ///<summary>
             /// User left

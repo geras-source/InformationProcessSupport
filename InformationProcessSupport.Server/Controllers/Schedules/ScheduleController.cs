@@ -1,9 +1,8 @@
 ﻿using InformationProcessSupport.Core.Groups;
 using InformationProcessSupport.Core.ScheduleParser;
-using InformationProcessSupport.Core.StatisticsCollector;
 using InformationProcessSupport.Server.Dtos;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace InformationProcessSupport.Server.Controllers.Schedules
 {
@@ -13,21 +12,19 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
     {
         private readonly IParserServices _parserServices;
         private readonly IGroupRepository _groupRepository;
-        private readonly IStatisticCollectorServices _statisticCollectorServices;
 
-        public ScheduleController(IParserServices parserServices, IGroupRepository groupRepository, IStatisticCollectorServices statisticCollectorServices)
+        public ScheduleController(IParserServices parserServices, IGroupRepository groupRepository)
         {
             _parserServices = parserServices;
             _groupRepository = groupRepository;
-            _statisticCollectorServices = statisticCollectorServices;
         }
 
         [HttpPost("PostScheduleCollection")]
-        public async Task<ActionResult> PostScheduleCollectionToParsing(ICollection<ScheduleDto> scheduleCollection)
+        public async Task<ActionResult> PostScheduleCollectionToParsing([FromBody] ICollection<ScheduleDto> scheduleCollection) // Done
         {
             if (scheduleCollection == null)
             {
-                return NotFound();
+                return NoContent();
             }
             else
             {
@@ -37,32 +34,40 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
                     StartTimeTheSubject = x.StartTimeTheSubject,
                     EndTimeTheSubject = x.EndTimeTheSubject,
                     DayOfTheWeek = x.DayOfTheWeek,
-                    GroupName = x.GroupName,
+                    GroupName = x.GroupName, // TODO: сделать массивом
                     Lecturer = x.Lecturer
                 }).ToList();
-               
-                await _parserServices.ParseScheduleCollection(entities);
+                try
+                {
+                    await _parserServices.ParseScheduleCollection(entities);
+                }
+                catch(ArgumentException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+                catch (WebException ex)
+                {
+                    return StatusCode(500, ex.Status);
+                }
+
                 return Ok();
             }
         }
         [HttpPost("PostGroupCollection")]
-        public async Task<ActionResult> PostGroupToDB(ICollection<GroupDto> groupCollection)
+        public async Task<ActionResult> PostGroupToDB([FromBody] ICollection<GroupDto> groupCollection) //Done
         {
-            await _statisticCollectorServices.CreateReportByDate("2023.04.02");
             if (groupCollection == null)
             {
                 return NotFound();
             }
             else
             {
-                //groupId
-                //key
                 var entities = groupCollection.Select(x => new GroupEntity
                 {
                     GroupName = x.GroupName,
                     GuildName = x.GuildName
                 }).ToList();
-                //_groupRepository.AddRangeGroups(entities);
+                await _groupRepository.AddCollectionGroupAsync(entities);
                 return Ok();
             }
         }

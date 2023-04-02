@@ -1,6 +1,6 @@
 ﻿{
   "prefix": "/",
-  "token": "OTEyODQ4OTQwODY3NjUzNjQz.G-pzAy.dKbVsioPqu0LhZRf6akTlp2C76ihEfYf67-ZFM",
+  "token": "###",
   "ConnectionStrings": {
     "DefaultConnection": "Server=localhost\\SQLEXPRESS01;Database=DiscordData;Trusted_Connection=True;Encrypt=False;"
   }

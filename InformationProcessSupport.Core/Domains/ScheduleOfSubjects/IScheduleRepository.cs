@@ -4,5 +4,6 @@
     {
         Task AddScheduleForOneSubject(ScheduleEntity scheduleEntity);
         Task AddScheduleCollectionAsync(ICollection<ScheduleEntity> scheduleCollection);
+        Task<ScheduleEntity> GetScheduleByChannelIdAsync(int channelId);
     }
 }

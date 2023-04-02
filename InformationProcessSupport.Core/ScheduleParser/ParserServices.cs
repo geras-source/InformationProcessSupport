@@ -1,8 +1,6 @@
-﻿using ExcelDataReader;
-using InformationProcessSupport.Core.Channels;
+﻿using InformationProcessSupport.Core.Channels;
 using InformationProcessSupport.Core.Groups;
 using InformationProcessSupport.Core.ScheduleOfSubjects;
-using System.Text;
 
 namespace InformationProcessSupport.Core.ScheduleParser
 {
@@ -34,8 +32,8 @@ namespace InformationProcessSupport.Core.ScheduleParser
                     "Saturday" => DayOfTheWeek.Saturday,
                     _ => DayOfTheWeek.Monday,
                 };
-                var channelId = await _channelRepository.GetChannelIdByName(schedule.Lecturer);
-                var groupId = await _groupReposity.GetGroupIdByName(schedule.GroupName);
+                int channelId = await _channelRepository.GetChannelIdByName(schedule.Lecturer);
+                int groupId = await _groupReposity.GetGroupIdByName(schedule.GroupName);
                 var entity = new ScheduleEntity
                 {
                     SubjectName = schedule.SubjectName,

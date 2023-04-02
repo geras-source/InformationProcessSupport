@@ -21,7 +21,6 @@ namespace InformationProcessSupport.Data.TimeOfActionsInTheChannel.StreamActions
                 builder.HasOne(x => x.StatisticEntities)
                     .WithMany(x => x.StreamActionsEntity)
                     .HasForeignKey(x => x.StatistisId);
-
             }
         }
     }

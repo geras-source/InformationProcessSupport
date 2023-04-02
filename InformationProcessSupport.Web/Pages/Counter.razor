@@ -1,18 +1,44 @@
 ﻿@page "/counter"
 
+@inject ChangeEventArgs IChangeEventArgs
 <PageTitle>Counter</PageTitle>
 
 <h1>Counter</h1>
 
-<p role="status">Current count: @currentCount</p>
+    <a id="exportCsv" class="btn" href="@_exportUrl" download="MyFile.xlsx"
+   role="button" @onclick="Search" target="=_top">Export to Csv</a>
+
+<p role="status">Current count: @selectedString</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+<select onchange=@DoStuff>
+    @foreach (var template in templates)
+    {
+        <option value=@template>@template</option>
+    }
+</select>
+
+@functions {
+    List<string> templates = new List<string>() { "Maui", "Hawaii", "Niihau", "Kauai", "Kahoolawe" };
+    string selectedString = "Maui";
+
+    void DoStuff(ChangeEventArgs e)
+    {
+        selectedString = e.Value.ToString();
+        Console.WriteLine("It is definitely: " + selectedString);
+    }
+}
 @code {
     private int currentCount = 0;
-
+    int _productId = 0;
+    string? _exportUrl = null;
     private void IncrementCount()
     {
         currentCount++;
+    }
+    async Task Search()
+    {
+        _exportUrl = $"https://localhost:7099/api/Statistic/DownloadTheExcelFile";
     }
 }

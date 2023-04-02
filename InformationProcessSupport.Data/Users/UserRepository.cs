@@ -114,7 +114,8 @@ namespace InformationProcessSupport.Data.Users
             {
                 UserId = it.UserId,
                 Name = it.Name,
-                Nickname = it.Nickname
+                Nickname = it.Nickname,
+                GroupId = it.GroupId
             }).ToListAsync();
             return entities;
         }

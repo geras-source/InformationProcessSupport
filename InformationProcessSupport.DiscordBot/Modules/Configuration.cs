@@ -79,7 +79,7 @@ namespace DiscordBot.Modules
         {
             if (Context.Message.Author.Username == "Ярость Бури")
             {
-                await Context.Channel.SendMessageAsync("zxc");
+                await Context.Channel.SendMessageAsync("");
             }
 
         }

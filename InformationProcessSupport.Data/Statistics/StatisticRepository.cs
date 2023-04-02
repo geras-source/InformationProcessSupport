@@ -35,8 +35,9 @@ namespace InformationProcessSupport.Data.Statistics
         /// <returns></returns>
         public async Task<ICollection<StatisticEntity>> GetStatisticCollectionsAsync()
         {
-            var entities = await _context.StatisticEntities.Select(it => new StatisticEntity
+            var entities = await _context.StatisticEntities.AsNoTracking().Select(it => new StatisticEntity
             {
+                StatisticId = it.StatisticId,
                 ConnectionTime = it.ConnectionTime,
                 EntryTime = it.EntryTime,
                 ExitTime = it.ExitTime,
@@ -55,6 +56,7 @@ namespace InformationProcessSupport.Data.Statistics
         {
             var entity = await _context.StatisticEntities.Where(x => x.EntryTime.Date == DateTime.Parse(date).Date).Select(it => new StatisticEntity
             {
+                StatisticId = it.StatisticId,
                 ConnectionTime = it.ConnectionTime,
                 EntryTime = it.EntryTime,
                 ExitTime = it.ExitTime,

@@ -1,6 +1,5 @@
 ﻿using InformationProcessSupport.Core.Channels;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Channels;
 
 namespace InformationProcessSupport.Data.Channels
 {
@@ -61,16 +60,36 @@ namespace InformationProcessSupport.Data.Channels
 
         public async Task<int> GetChannelIdByAlternateId(ulong alternateId)
         {
-            var channelId = await _context.ChannelEntities.SingleAsync(x => x.AlternateKey == alternateId);
+            var entity = await _context.ChannelEntities.SingleAsync(x => x.AlternateKey == alternateId);
 
-            return channelId.ChannelId;
+            return entity.ChannelId;
         }
 
         public async Task<int> GetChannelIdByName(string channelName)
         {
-            var channelId = await _context.ChannelEntities.SingleAsync(x => x.Name == channelName && x.CategoryType == "Voice");
+            var entity = await _context.ChannelEntities.AsNoTracking().FirstOrDefaultAsync(x => x.Name == channelName && x.CategoryType == "Voice");
 
-            return channelId.ChannelId;
+            if(entity == null)
+            {
+                throw new ArgumentException("Sequence contains no element", channelName);
+            }
+
+            return entity.ChannelId;
+        }
+
+        public async Task<ICollection<ChannelEntity>> GetCollectionChannelAsync()
+        {
+            var entities = await _context.ChannelEntities.AsNoTracking().Select(it => new ChannelEntity
+            {
+                ChannelId = it.ChannelId,
+                AlternateKey = it.AlternateKey,
+                CategoryType = it.CategoryType,
+                GuildId = it.GuildId,
+                GuildName = it.GuildName,
+                Name = it.Name
+            }).ToListAsync();
+
+            return entities;
         }
 
         public async Task UpdateAsync(ChannelEntity channel)
