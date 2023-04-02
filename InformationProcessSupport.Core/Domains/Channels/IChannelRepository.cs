@@ -9,5 +9,6 @@
         Task<bool> ExistsAsync(ulong id, ulong guildId);
         Task<int> GetChannelIdByAlternateId(ulong alternateId);
         Task<int> GetChannelIdByName(string channelName);
+        Task<ICollection<ChannelEntity>> GetCollectionChannelAsync();
     }
 }

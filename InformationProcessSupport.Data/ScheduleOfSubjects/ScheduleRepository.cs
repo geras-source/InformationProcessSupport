@@ -1,4 +1,5 @@
 ﻿using InformationProcessSupport.Core.ScheduleOfSubjects;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,21 @@ namespace InformationProcessSupport.Data.ScheduleOfSubjects
             };
             await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<ScheduleEntity> GetScheduleByChannelIdAsync(int channelId)
+        {
+            var model = await _context.ScheduleEntities.FirstOrDefaultAsync(x => x.ChannelId == channelId);
+
+            var entity = new ScheduleEntity
+            {
+                DayOfTheWeek = model.DayOfTheWeek,
+                StartTimeTheSubject = model.StartTimeTheSubject,
+                EndTimeTheSubject = model.EndTimeTheSubject,
+                SubjectName = model.SubjectName
+            };
+
+            return entity;
         }
     }
 }
