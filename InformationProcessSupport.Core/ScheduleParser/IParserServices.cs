@@ -1,4 +1,4 @@
-﻿using InformationProcessSupport.Core.ScheduleOfSubjects;
+﻿using InformationProcessSupport.Core;
 using Microsoft.AspNetCore.Http;
 
 namespace InformationProcessSupport.Core.ScheduleParser

@@ -1,0 +1,177 @@
+﻿@page "/component"
+<StyleSheet Resource="Component.razor.css" Assembly="GetType().Assembly"></StyleSheet>
+<PageTitle>Component</PageTitle>
+
+<h1>Автодополнение</h1>
+
+<input type="text" @bind-value="searchTerm" @onkeydown="OnSearchKeyDown" @oninput="OnSearchInput" />
+<ul @ref="suggestionList">
+    @foreach (string suggestion in suggestions)
+    {
+        <li class="@((selectedSuggestion == suggestion) ? "selected" : "")" @onclick="()=> OnSuggestionClicked(suggestion)">@suggestion</li>
+    }
+</ul>
+
+
+@code {
+    
+    private Trie trie;
+    private List<string> suggestions;
+    private string searchTerm;
+    private string selectedSuggestion;
+    private ElementReference suggestionList;
+    [Inject] private IJSRuntime jsRuntime { get; set; }
+
+    protected override void OnInitialized()
+    {
+        trie = new Trie();
+        // добавляем некоторые слова для автодополнения
+        trie.Insert("К-44");
+        trie.Insert("КС-42");
+        trie.Insert("КС-41");
+        trie.Insert("КС-40");
+
+        suggestions = new List<string>();
+    }
+
+    private void OnSearchInput(ChangeEventArgs args)
+    {
+        searchTerm = args.Value.ToString();
+        if (searchTerm.Length > 0)
+        {
+            suggestions = trie.AutoComplete(searchTerm);
+            selectedSuggestion = suggestions.FirstOrDefault();
+        }
+        else
+        {
+            suggestions.Clear();
+            selectedSuggestion = null;
+        }
+    }
+
+    private void OnSearchKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Tab" && suggestions.Count > 0)
+        {
+            searchTerm = selectedSuggestion;
+            suggestions.Clear();
+            selectedSuggestion = null;
+        }
+        else if (args.Key == "ArrowDown" && suggestions.Count > 0)
+        {
+            MoveSelectionAsync(1);
+        }
+        else if (args.Key == "ArrowUp" && suggestions.Count > 0)
+        {
+            MoveSelectionAsync(-1);
+        }
+    }
+    private void OnSuggestionClicked(string suggestion)
+    {
+        searchTerm = suggestion;
+        suggestions.Clear();
+        selectedSuggestion = null;
+    }
+    private async Task MoveSelectionAsync(int offset)
+    {
+        var selectedIndex = suggestions.IndexOf(selectedSuggestion);
+        selectedIndex = (selectedIndex + offset + suggestions.Count) % suggestions.Count;
+        selectedSuggestion = suggestions[selectedIndex];
+        await ScrollIntoViewAsync(selectedSuggestion);
+        await Task.Delay(100); // задержка для ожидания рендеринга списка
+    }
+
+    private async Task ScrollIntoViewAsync(string suggestion)
+    {
+        var element = await jsRuntime.InvokeAsync<ElementReference>("eval", $"document.querySelector('li:contains(\"{suggestion}\")')");
+        if (!element.Equals(default(ElementReference)))
+        {
+            await jsRuntime.InvokeVoidAsync("scrollIntoView", element);
+        }
+    }
+
+    public class TrieNode
+    {
+        public char Value { get; set; }
+        public bool IsEndOfWord { get; set; }
+        public Dictionary<char, TrieNode> Children { get; set; }
+
+        public TrieNode(char value)
+        {
+            Value = value;
+            IsEndOfWord = false;
+            Children = new Dictionary<char, TrieNode>();
+        }
+    }
+    public class Trie
+    {
+        private TrieNode root;
+
+        public Trie()
+        {
+            root = new TrieNode(' ');
+        }
+
+        public void Insert(string word)
+        {
+            TrieNode current = root;
+            foreach (char c in word)
+            {
+                if (!current.Children.ContainsKey(c))
+                {
+                    current.Children[c] = new TrieNode(c);
+                }
+                current = current.Children[c];
+            }
+            current.IsEndOfWord = true;
+        }
+
+        public bool Search(string word)
+        {
+            TrieNode current = root;
+            foreach (char c in word)
+            {
+                if (current.Children.ContainsKey(c))
+                {
+                    current = current.Children[c];
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return current.IsEndOfWord;
+        }
+
+        public List<string> AutoComplete(string prefix)
+        {
+            List<string> suggestions = new List<string>();
+            TrieNode current = root;
+            foreach (char c in prefix)
+            {
+                if (current.Children.ContainsKey(c))
+                {
+                    current = current.Children[c];
+                }
+                else
+                {
+                    return suggestions;
+                }
+            }
+            Collect(current, prefix, suggestions);
+            return suggestions;
+        }
+
+        private void Collect(TrieNode node, string prefix, List<string> suggestions)
+        {
+            if (node.IsEndOfWord)
+            {
+                suggestions.Add(prefix);
+            }
+            foreach (TrieNode child in node.Children.Values)
+            {
+                Collect(child, prefix + child.Value, suggestions);
+            }
+        }
+    }
+}

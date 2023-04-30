@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InformationProcessSupport.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InformationProcessSupport.Core", "InformationProcessSupport.Core\InformationProcessSupport.Core.csproj", "{640450C5-F774-4D2E-85DF-143E0B238685}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InformationProcessSupport.Web", "InformationProcessSupport.Web\InformationProcessSupport.Web.csproj", "{28BA67EE-BE63-4F14-A15D-3405DE0E6A89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InformationProcessSupport.Web", "InformationProcessSupport.Web\InformationProcessSupport.Web.csproj", "{28BA67EE-BE63-4F14-A15D-3405DE0E6A89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

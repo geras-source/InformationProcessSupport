@@ -49,7 +49,7 @@ var builder = new HostBuilder()
                    services
                        .AddServices()
                        .AddRepositories()
-                       .AddAplicationContext(config);
+                       .AddApplicationContext(config);
                })
                .UseConsoleLifetime();
 

@@ -1,13 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using InformationProcessSupport.Data.Channels;
-using InformationProcessSupport.Data.Users;
-using InformationProcessSupport.Data.Statistics;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.MicrophoneActions;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.CameraActions;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.StreamActions;
-using InformationProcessSupport.Data.TimeOfActionsInTheChannel.SelfDeafenedActions;
-using InformationProcessSupport.Data.ScheduleOfSubjects;
-using InformationProcessSupport.Data.Groups;
+using InformationProcessSupport.Data.Models;
 
 namespace InformationProcessSupport.Data
 {

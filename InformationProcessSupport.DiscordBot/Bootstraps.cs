@@ -1,7 +1,5 @@
 ﻿using DiscordBot.Services;
-using InformationProcessSupport.Data.Channels;
-using InformationProcessSupport.Data.Statistics;
-using InformationProcessSupport.Data.Users;
+using InformationProcessSupport.DiscordBot;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DiscordBot
@@ -11,7 +9,7 @@ namespace DiscordBot
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddHostedService<CommandHandler>();
-
+            services.AddScoped<DataBaseProvider>();
             return services;
         }
     }

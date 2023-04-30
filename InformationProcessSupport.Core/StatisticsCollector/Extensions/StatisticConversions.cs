@@ -1,29 +1,68 @@
-﻿using InformationProcessSupport.Core.Channels;
-using InformationProcessSupport.Core.Groups;
-using InformationProcessSupport.Core.Statistics;
-using InformationProcessSupport.Core.Users;
+﻿using InformationProcessSupport.Core.Domains;
 
 namespace InformationProcessSupport.Core.StatisticsCollector.Extensions
 {
     internal static class StatisticConversions
     {
-        public static IEnumerable<GeneratedStatistics> CollectStatistics(this IEnumerable<StatisticEntity> statisticCollection, IEnumerable<UserEntity> userCollection,
-            IEnumerable<ChannelEntity> channelEntities, IEnumerable<GroupEntity> groupEntities)
+        public static IEnumerable<GeneratedStatistics> CollectStatistics(this IEnumerable<StatisticEntity> statisticCollection,
+            IEnumerable<UserEntity> userCollection,
+            IEnumerable<ChannelEntity> channelEntities, 
+            IEnumerable<GroupEntity> groupEntities, 
+            IEnumerable<MicrophoneActionsEntity> microphoneActions,
+            IEnumerable<CameraActionsEntity> cameraActions, 
+            IEnumerable<SelfDeafenedActionsEntity> selfDeafenedActions, 
+            IEnumerable<StreamActionsEntity> streamActions,
+            IEnumerable<ScheduleEntity> scheduleEntities)
         {
-            return (from statisticItem in statisticCollection
-                    join userItem in userCollection on statisticItem.UserId equals userItem.UserId
-                    join channleItem in channelEntities on statisticItem.ChannelId equals channleItem.ChannelId
-                    join groupItem in groupEntities on userItem.GroupId equals groupItem.GroupId
-                    select new GeneratedStatistics
-                    {
-                        UserName = userItem.Nickname,
-                        ConnectionTime = statisticItem.ConnectionTime,
-                        Attendance = statisticItem.Attendance,
-                        ChannelName = channleItem.Name,
-                        GroupName = groupItem.GroupName,
-                        EntryTime = statisticItem.EntryTime,
-                        ExitTime = statisticItem.ExitTime
-                    }).ToList();
+            var generatedStatistics = (from statisticItem in statisticCollection
+                join userItem in userCollection on statisticItem.UserId equals userItem.UserId
+                join channelItem in channelEntities on statisticItem.ChannelId equals channelItem.ChannelId
+                join groupItem in groupEntities on userItem.GroupId equals groupItem.GroupId
+                join scheduleItem in scheduleEntities on statisticItem.SheduleId equals scheduleItem.ScheduleId
+                select new GeneratedStatistics
+                {
+                    Id = statisticItem.StatisticId,
+                    UserName = userItem.Nickname,
+                    ConnectionTime = statisticItem.ConnectionTime,
+                    Attendance = statisticItem.Attendance,
+                    ChannelName = channelItem.Name,
+                    GroupName = groupItem.GroupName,
+                    EntryTime = statisticItem.EntryTime,
+                    ExitTime = statisticItem.ExitTime,
+                    SubjectName = scheduleItem.SubjectName,
+                    StartTimeTheSubject = scheduleItem.StartTimeTheSubject,
+                    EndTimeTheSubject = scheduleItem.EndTimeTheSubject,
+                    MicrophoneActionsEntity = new List<MicrophoneActionsEntity>(),
+                    CameraActionsEntity = new List<CameraActionsEntity>(),
+                    StreamActionsEntity = new List<StreamActionsEntity>(),
+                    SelfDeafenedActionsEntities = new List<SelfDeafenedActionsEntity>()
+                }).ToList();
+
+            foreach (var group in microphoneActions.GroupBy(ma => ma.StatisticId))
+            {
+                var statistic = generatedStatistics.FirstOrDefault(s => s.Id == group.Key);
+                statistic?.MicrophoneActionsEntity.AddRange(group);
+            }
+
+            foreach (var group in cameraActions.GroupBy(ca => ca.StatisticId))
+            {
+                var statistic = generatedStatistics.FirstOrDefault(s => s.Id == group.Key);
+                statistic?.CameraActionsEntity.AddRange(group);
+            }
+
+            foreach (var group in streamActions.GroupBy(sa => sa.StatisticId))
+            {
+                var statistic = generatedStatistics.FirstOrDefault(s => s.Id == group.Key);
+                statistic?.StreamActionsEntity.AddRange(group);
+            }
+
+            foreach (var group in selfDeafenedActions.GroupBy(sa => sa.StatisticId))
+            {
+                var statistic = generatedStatistics.FirstOrDefault(s => s.Id == group.Key);
+                statistic?.SelfDeafenedActionsEntities.AddRange(group);
+            }
+
+            return generatedStatistics;
         }
     }
 }
