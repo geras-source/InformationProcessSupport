@@ -13,13 +13,12 @@ namespace InformationProcessSupport.Server.Controllers.Statistics
             _collectorServices= collectorServices;
         }
         [HttpGet("DownloadTheExcelFile")]
-        public async Task<IActionResult> DownloadfromBytes()
+        public async Task<IActionResult> DownloadfromBytes([FromQuery]DateTime date)
         {
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = "testBook.xlsx";
             var memoryStream = new MemoryStream();
-
-            var result = await _collectorServices.CreateReportByDate("");
+            var result = await _collectorServices.CreateReportByDate(date);
             result.SaveAs(memoryStream);
             memoryStream.Seek(0, SeekOrigin.Begin);
 

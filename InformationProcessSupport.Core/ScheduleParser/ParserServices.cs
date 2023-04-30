@@ -1,28 +1,21 @@
-﻿using InformationProcessSupport.Core.Channels;
-using InformationProcessSupport.Core.Groups;
-using InformationProcessSupport.Core.ScheduleOfSubjects;
+﻿using InformationProcessSupport.Core.Domains;
 
 namespace InformationProcessSupport.Core.ScheduleParser
 {
     public class ParserServices : IParserServices
     {
-        private readonly IScheduleRepository _scheduleRepository;
-        private readonly IGroupRepository _groupReposity;
-        private readonly IChannelRepository _channelRepository;
+        private readonly IStorageProvider _storageProvider;
 
-        public ParserServices(IScheduleRepository scheduleRepository, IGroupRepository groupReposity, IChannelRepository channelRepository)
+        public ParserServices(IStorageProvider storageProvider)
         {
-            _scheduleRepository = scheduleRepository;
-            _groupReposity = groupReposity;
-            _channelRepository = channelRepository;
+            _storageProvider = storageProvider;
         }
         public async Task ParseScheduleCollection(ICollection<Schedule> scheduleCollection)
         {
-            DayOfTheWeek day;
             List<ScheduleEntity> scheduleEntities = new();
             foreach (var schedule in scheduleCollection)
             {
-                day = schedule.DayOfTheWeek switch
+                var day = schedule.DayOfTheWeek switch
                 {
                     "Monday" => DayOfTheWeek.Monday,
                     "Tuesday" => DayOfTheWeek.Tuesday,
@@ -32,8 +25,8 @@ namespace InformationProcessSupport.Core.ScheduleParser
                     "Saturday" => DayOfTheWeek.Saturday,
                     _ => DayOfTheWeek.Monday,
                 };
-                int channelId = await _channelRepository.GetChannelIdByName(schedule.Lecturer);
-                int groupId = await _groupReposity.GetGroupIdByName(schedule.GroupName);
+                var channelId = await _storageProvider.GetChannelIdByName(schedule.Lecturer);
+                var groupId = await _storageProvider.GetGroupIdByName(schedule.GroupName);
                 var entity = new ScheduleEntity
                 {
                     SubjectName = schedule.SubjectName,
@@ -45,7 +38,7 @@ namespace InformationProcessSupport.Core.ScheduleParser
                 };
                 scheduleEntities.Add(entity);
             }
-            await _scheduleRepository.AddScheduleCollectionAsync(scheduleEntities);
+            await _storageProvider.AddScheduleCollectionAsync(scheduleEntities);
         }
     }
 }

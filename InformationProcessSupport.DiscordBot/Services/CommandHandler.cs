@@ -5,61 +5,33 @@ using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
-using System.Data;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
-using InformationProcessSupport.Data.Groups;
-using ShellProgressBar;
-using InformationProcessSupport.Core.Channels;
-using InformationProcessSupport.Core.Groups;
-using InformationProcessSupport.Core.Users;
-using InformationProcessSupport.Core.Statistics;
-using InformationProcessSupport.Core.TimeOfActionsInTheChannel.CameraActions;
-using InformationProcessSupport.Core.TimeOfActionsInTheChannel.MicrophoneActions;
-using InformationProcessSupport.Core.TimeOfActionsInTheChannel.SelfDeafenedActions;
-using InformationProcessSupport.Core.TimeOfActionsInTheChannel.StreamActions;
-using Microsoft.Extensions.DependencyInjection;
-using InformationProcessSupport.Core.ScheduleOfSubjects;
+using System.Diagnostics.CodeAnalysis;
+using InformationProcessSupport.DiscordBot;
+using InformationProcessSupport.Core.Domains;
 
 namespace DiscordBot.Services
 {
+    [SuppressMessage("ReSharper", "InvalidXmlDocComment")]
     public class CommandHandler : IHostedService, IDisposable
     {
         private readonly IServiceProvider _provider;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _service;
         private readonly IConfiguration _config;
-        private readonly IChannelRepository _channelRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly IStatisticRepository _statisticRepository;
-        private readonly IMicrophoneActionsRepository _microphoneActionsRepository;
-        private readonly ISelfDeafenedActionsRepository _selfDeafenedActionsRepository;
-        private readonly ICameraActionRepository _cameraActionRepository;
-        private readonly IStreamActionsRepository _streamActionsRepository;
-        private readonly Discord.ConnectionState _connectionState;
-        private readonly IGroupRepository _groupReposity;
-        private readonly IScheduleRepository _scheduleRepository;
-        private readonly Regex _regex = new Regex(@"^(\w{3}-\d{2})$");
-
+        private readonly IStorageProvider _storageProvider;
+        //private readonly Discord.ConnectionState _connectionState;
+        private readonly DataBaseProvider _dataBaseProvider;
+        
         public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService service,
-                                IConfiguration config, IChannelRepository channelRepository, IUserRepository userRepository, 
-                                IStatisticRepository statisticRepository, IMicrophoneActionsRepository microphoneActionsRepository,
-                                ISelfDeafenedActionsRepository selfDeafenedActionsRepository, ICameraActionRepository cameraActionRepository,
-                                IStreamActionsRepository streamActionsRepository, IGroupRepository groupReposity, IScheduleRepository scheduleRepository)
+                                IConfiguration config, IStorageProvider storageProvider,
+                                DataBaseProvider dataBaseProvider)
         {
             _provider = provider;
             _client = client;
             _service = service;
             _config = config;
-            _channelRepository = channelRepository;
-            _userRepository = userRepository;
-            _statisticRepository = statisticRepository;
-            _microphoneActionsRepository = microphoneActionsRepository;
-            _selfDeafenedActionsRepository = selfDeafenedActionsRepository;
-            _cameraActionRepository = cameraActionRepository;
-            _streamActionsRepository = streamActionsRepository;
-            _groupReposity = groupReposity;
-            _scheduleRepository = scheduleRepository;
+            _storageProvider = storageProvider;
+            _dataBaseProvider = dataBaseProvider;
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
@@ -71,7 +43,7 @@ namespace DiscordBot.Services
             _client.Ready += ClientIsReady;
             _client.Disconnected += _client_Disconnected;
             _client.Connected += _client_Connected;
-
+            
             /*_client.RoleCreated += _client_RoleCreated;*/ // неуверен, что пригодится
             _client.RoleDeleted += OnRoleDeleted;
             _client.RoleUpdated += OnRoleUpdated;
@@ -92,53 +64,28 @@ namespace DiscordBot.Services
 
         private async Task OnRoleUpdated(SocketRole oldSocketRole, SocketRole newSocketRole)
         {
-            if (_regex.IsMatch(newSocketRole.Name) && oldSocketRole.Name == "новая роль" || oldSocketRole.Name == "new role")
-            {
-                var entity = new GroupEntity()
-                {
-                    GroupName = newSocketRole.Name,
-                    AlternateKey = newSocketRole.Id,
-                    GuildId = newSocketRole.Guild.Id,
-                    GuildName = newSocketRole.Guild.Name
-                };
-                await _groupReposity.AddAsync(entity);
-            }
-            if(_regex.IsMatch(oldSocketRole.Name) && _regex.IsMatch(newSocketRole.Name))
-            {
-                var groupId = await _groupReposity.GetGroupIdByAlternateId(newSocketRole.Id, newSocketRole.Guild.Id);
-                var entity = new GroupEntity()
-                {
-                    GroupId = groupId,
-                    GroupName = newSocketRole.Name
-                };
-                await _groupReposity.UpdateAsync(entity);
-            }
+            await _dataBaseProvider.UpdateRole(oldSocketRole, newSocketRole);
         }
 
         private async Task OnRoleDeleted(SocketRole socketRole)
         {
-            if (_regex.IsMatch(socketRole.Name))
-            {
-                var groupId = await _groupReposity.GetGroupIdByAlternateId(socketRole.Id, socketRole.Guild.Id);
-                await _groupReposity.DeleteAsync(groupId);
-            }
+            await _dataBaseProvider.DeleteRole(socketRole);
         }
 
         private async Task OnGuildMemberUpdated(Cacheable<SocketGuildUser, ulong> arg1, SocketGuildUser arg2)
         {
-            var userId = await _userRepository.GetUserIdByAlternateId(alternateId: arg2.Id, guildId: arg2.Guild.Id);
-            var entity = new UserEntity
-            {
-                UserId = userId,
-                Nickname = arg2.DisplayName,
-                Name = arg2.Username,
-                Roles = string.Join(",", arg2.Roles.Where(x => x.Name is not "@everyone"))
-            };
-            await _userRepository.UpdateAsync(entity);
+            await _dataBaseProvider.UpdateUser(arg1, arg2);
         }
-        private Task OnClientJoinedGuild(SocketGuild arg)
+
+        private async Task OnClientJoinedGuild(SocketGuild arg)
         {
-            throw new NotImplementedException();
+            var guild = _client.Guilds;
+            foreach (var data in guild)
+            {
+                await _dataBaseProvider.SavingTheUsers(data);
+                await _dataBaseProvider.SavingTheChannels(data);
+                await _dataBaseProvider.SavingTheGroups(data);
+            }
         }
 
         private async Task ClientIsReady()
@@ -148,8 +95,10 @@ namespace DiscordBot.Services
             var guild = _client.Guilds;
             foreach (var data in guild)
             {
+                await _dataBaseProvider.SavingTheUsers(data);
+                await _dataBaseProvider.SavingTheChannels(data);
                 //// Let's build a guild command! We're going to need a guild so lets just put that in a variable.
-                
+
 
                 //// Next, lets create our slash command builder. This is like the embed builder but for slash commands.
                 //var guildCommand = new SlashCommandBuilder();
@@ -215,99 +164,6 @@ namespace DiscordBot.Services
                 //    Console.WriteLine(json);
                 //}
                 //await data.CreateRoleAsync(name: "Test", color: Color.Teal);
-                var groups = data?.Roles.Where(x => _regex.IsMatch(x.Name));
-                
-                if(groups.Count() != 0)
-                {
-                    var groupEntities = new List<GroupModel>();
-                    var current = 0;
-                    using (var pbar = new ProgressBar(groups.Count(), "Saving groups"))
-                    {
-                        foreach (var group in groups)
-                        {
-                            var entity = new GroupModel
-                            {
-                                GroupName = group.Name,
-                                AlternateKey = group.Id,
-                                GuildId = data.Id,
-                                GuildName = data.Name
-                            };
-                            groupEntities.Add(entity);
-                            pbar.Tick($"Saving groups: {++current} of {groups.Count()} from {data.Name}");
-                        }
-                        //await _groupReposity.AddRangeGroups(groupEntities);
-                    }
-                }
-
-                var users = data?.Users;
-                var usersList = new List<UserEntity>();
-                using (var pbar = new ProgressBar(users.Count, "Saving users"))
-                {
-                    var current = 0;
-                    foreach (var user in users)
-                    {
-                        var exists = _userRepository.ExistsAsync(user.Id, data.Id).Result;
-                        if (exists)
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                            var entity = new UserEntity
-                            {
-                                AlternateKey = user.Id,
-                                Name = user.Username,
-                                Nickname = user?.DisplayName,
-                                Roles = string.Join(",", user.Roles.Where(x => x.Name is not "@everyone")),
-                                GuildName = data.Name,
-                                GuildId = data.Id
-                            };
-                            var group = user.Roles.FirstOrDefault(x => _regex.IsMatch(x.Name));
-                            if (group != null)
-                            {
-                                entity.GroupId = await _groupReposity.GetGroupIdByAlternateId(group.Id, data.Id);
-                            }
-                            else
-                            {
-                                entity.GroupId = null;
-                            }
-                            usersList.Add(entity);
-                        }
-                        pbar.Tick($"Saving users: {++current} of {users.Count} from {data.Name}");
-                    }
-                    await _userRepository.AddCollectionAsync(usersList);
-                }
-
-               
-
-                var channels = data?.Channels.Where(channel => channel is not ICategoryChannel);
-                using (var pbar = new ProgressBar(channels.Count(), "Saving channels"))
-                {
-                    var current = 0;
-                    var channelsList = new List<ChannelEntity>();
-                    foreach (var channel in channels)
-                    {
-                        var exists = _channelRepository.ExistsAsync(channel.Id, data.Id).Result;
-                        if (exists)
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                            var entity = new ChannelEntity
-                            {
-                                AlternateKey = channel.Id,
-                                Name = channel.Name,
-                                CategoryType = channel.GetChannelType().ToString(),
-                                GuildName = data.Name,
-                                GuildId = data.Id
-                            };
-                            channelsList.Add(entity);
-                        }
-                        pbar.Tick($"Saving channels: {++current} of {channels.Count()} from {data.Name}");
-                    }
-                    await _channelRepository.AddCollectionAsync(channelsList);
-                }
             }
             stopWatch.Stop();
             TimeSpan timeSpan = stopWatch.Elapsed;
@@ -346,42 +202,35 @@ namespace DiscordBot.Services
 
         private async Task OnChannelUpdated(SocketChannel oldSocketChannel, SocketChannel newSocketChannel)
         {
-            var channelId = await _channelRepository.GetChannelIdByAlternateId(oldSocketChannel.Id);
-            var guild = _client.Guilds.First(x => x.Channels.First(x => x.Id == newSocketChannel.Id && x.Name == newSocketChannel.ToString()) == newSocketChannel);
-            var entity = new ChannelEntity
-            {
-                ChannelId = channelId,
-                Name = newSocketChannel.ToString(),
-                CategoryType = newSocketChannel.GetChannelType().ToString(),
-                GuildId = guild.Id
-            };
-            await _channelRepository.UpdateAsync(entity);
+            var guild = _client.Guilds
+                .First(x => x.Channels.First(channel => channel.Id == newSocketChannel.Id && channel.Name == newSocketChannel.ToString()) == newSocketChannel);
+            await _dataBaseProvider.UpdateChannel(oldSocketChannel, newSocketChannel, guild);
         }
 
         private async Task OnChannelDestroyed(SocketChannel socketChannel)
         {
-            var channelId = await _channelRepository.GetChannelIdByAlternateId(socketChannel.Id);
-            await _channelRepository.DeleteAsync(channelId);
+            var channelId = await _storageProvider.GetChannelIdByAlternateId(socketChannel.Id);
+            await _storageProvider.DeleteChannelAsync(channelId);
         }
 
         private async Task OnChannelCreated(SocketChannel socketChannel)
         {
-            var guild = _client.Guilds.First(x => x.Channels.First(x => x.Id == socketChannel.Id && x.Name == socketChannel.ToString()) == socketChannel);
+            var guild = _client.Guilds.First(x => x.Channels.First(channel => channel.Id == socketChannel.Id && channel.Name == socketChannel.ToString()) == socketChannel);
             var entity = new ChannelEntity
             {
                 AlternateKey = socketChannel.Id,
                 CategoryType = socketChannel.GetChannelType().ToString(),
-                Name = socketChannel.ToString(),
+                Name = socketChannel.ToString() ?? "Default",
                 GuildId = guild.Id,
                 GuildName = guild.Name
             };
-            await _channelRepository.AddAsync(entity);
+            await _storageProvider.AddChannelAsync(entity);
         }
 
         private async Task OnUserLeftFromGuild(SocketGuild socketGuild, SocketUser socketUser)
         {
-            var userId = await _userRepository.GetUserIdByAlternateId(alternateId: socketUser.Id, guildId: socketGuild.Id);
-            await _userRepository.DeleteAsync(id: userId);
+            var userId = await _storageProvider.GetUserIdByAlternateId(alternateId: socketUser.Id, guildId: socketGuild.Id);
+            await _storageProvider.DeleteUserAsync(id: userId);
         }
 
         private async Task OnUserJoinedToGuild(SocketGuildUser socketGuildUser)
@@ -395,7 +244,7 @@ namespace DiscordBot.Services
                 Nickname = socketGuildUser.DisplayName,
                 Roles = null
             };
-            await _userRepository.AddAsync(entity);
+            await _storageProvider.AddUserAsync(entity);
         }
 
         private async Task OnCommandExecuted(Optional<CommandInfo> commandInfo, ICommandContext commandContext, IResult result)
@@ -419,6 +268,7 @@ namespace DiscordBot.Services
             await _service.ExecuteAsync(context, argPos, _provider);
         }
 
+        
         private async Task HandleUserVoiceStateUpdated(SocketUser user, SocketVoiceState oldVoiceState, SocketVoiceState newVoiceState)
         {
             ///<summary>
@@ -426,202 +276,66 @@ namespace DiscordBot.Services
             ///</summary>>
             if (newVoiceState.VoiceChannel != null && oldVoiceState.VoiceChannel == null | oldVoiceState.VoiceChannel?.Name != newVoiceState.VoiceChannel.Name)
             {
-                TimeOnly timeOnly = TimeOnly.Parse("14:20:00");
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
-                var schedulemodel = await _scheduleRepository.GetScheduleByChannelIdAsync(channelId);
-
-                if(timeOnly > TimeOnly.FromTimeSpan(schedulemodel.StartTimeTheSubject) && timeOnly < TimeOnly.FromTimeSpan(schedulemodel.EndTimeTheSubject))
-                {
-                    Console.WriteLine($"User (Name: {user.Username} ID: {user.Id}) join a VoiceChannel (Name: {newVoiceState.VoiceChannel.Name} ID: {newVoiceState.VoiceChannel.Id})");
-                    var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-
-                    var entity = new StatisticEntity
-                    {
-                        UserId = userId,
-                        ChannelId = channelId,
-                        EntryTime = GetTimeAsync().Result
-                    };
-
-                    await _statisticRepository.AddAsync(entity);
-                }
+                await _dataBaseProvider.CreateStatistic(user, newVoiceState);
             }
             ///<summary>
             /// User left
             /// </summary>
             if (oldVoiceState.VoiceChannel != null && newVoiceState.VoiceChannel == null | oldVoiceState.VoiceChannel.Name != newVoiceState.VoiceChannel?.Name)
             {
-                Console.WriteLine($"User (Name: {user.Username} ID: {user.Id}) left from a VoiceChannel (Name: {oldVoiceState.VoiceChannel.Name} ID: {oldVoiceState.VoiceChannel.Id})");
-                var userId = await _userRepository.GetUserIdByAlternateId(user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
-                var time = GetTimeAsync().Result;
-
-                var entity = new StatisticEntity
-                {
-                    UserId = userId,
-                    ChannelId = channelId,
-                    ExitTime = time
-                };
-                await _statisticRepository.UpdateConnectionTimeAsync(entity);
+                await _dataBaseProvider.UpdateStatistic(user, oldVoiceState);
             }
+
             ///<summary>
             /// замучен полностью (иконка с наушниками)
             /// </summary>
-            if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfDeafened == true && oldVoiceState.IsSelfDeafened == false)
+            if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfDeafened && oldVoiceState.IsSelfDeafened == false)
             {
-                Console.WriteLine("SelfDeafened");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new SelfDeafenedActionsEntity
-                {
-                    StatistisId = statisticId,
-                    SelfDeafenedTurnOffTime = time
-                };
-                await _selfDeafenedActionsRepository.AddSelfDeafenedTurnOffTimeAsync(entity);
+                await _dataBaseProvider.RecordTheSelfDeafened(user, oldVoiceState);
             }
-            else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfDeafened == false && oldVoiceState.IsSelfDeafened == true)
+            else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfDeafened == false && oldVoiceState.IsSelfDeafened)
             {
-                Console.WriteLine("UnSelfDeafened");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new SelfDeafenedActionsEntity
-                {
-                    StatistisId = statisticId,
-                    SelfDeafenedTurnOnTime = time
-                };
-                await _selfDeafenedActionsRepository.AddendumASelfDeafenedOperatingTime(entity);
+                await _dataBaseProvider.UpdateRecordSelfDeafened(user, newVoiceState);
             }
+
             ///< summary >
             /// Self muted
             /// </ summary >
-            if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfMuted == true && oldVoiceState.IsSelfMuted == false
+            if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfMuted && oldVoiceState.IsSelfMuted == false
                 && newVoiceState.IsSelfDeafened == false)
             {
-                Console.WriteLine($"Muted :{user.Username}");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: oldVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new MicrophoneActionsEntity
-                {
-                    StatistisId = statisticId,
-                    MicrophoneTurnOffTime = time
-                };
-                await _microphoneActionsRepository.AddMicrophoneTurnOffTimeAsync(entity);
+                await _dataBaseProvider.RecordTheSelfMuted(user, oldVoiceState);
             }
-            else if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfMuted == false && oldVoiceState.IsSelfMuted == true && oldVoiceState.IsSelfDeafened == false)
+            else if (oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsSelfMuted == false && oldVoiceState is { IsSelfMuted: true, IsSelfDeafened: false })
             {
-                Console.WriteLine($"UnMuted :{user.Username}");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(oldVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new MicrophoneActionsEntity
-                {
-                    StatistisId = statisticId,
-                    MicrophoneTurnOnTime = time
-                };
-                await _microphoneActionsRepository.AddendumAMicrophoneOperatingTime(entity);
+                await _dataBaseProvider.UpdateRecordSelfMuted(user, oldVoiceState, newVoiceState);
             }
+
             ///<summary>
             /// Camera turn on/off
             /// </summary>
-            if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsVideoing == true && oldVoiceState.IsVideoing == false)
+            if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsVideoing && oldVoiceState.IsVideoing == false)
             {
-                Console.WriteLine($"{user.Username} turn on the camera in {newVoiceState.VoiceChannel.Name}");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new CameraActionsEntity
-                {
-                    StatistisId = statisticId,
-                    CameraTurnOnTime = time
-                };
-
-                await _cameraActionRepository.AddCameraActionTurnOnTimeAsync(entity);
+                await _dataBaseProvider.RecordTurnOnCamera(user, newVoiceState);
             }
-            else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsVideoing == false && oldVoiceState.IsVideoing == true)
+            else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsVideoing == false && oldVoiceState.IsVideoing)
             {
-                Console.WriteLine($"{user.Username} turn off the camera in {newVoiceState.VoiceChannel.Name}");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new CameraActionsEntity
-                {
-                    StatistisId = statisticId,
-                    CameraTurnOffTime = time
-                };
-
-                await _cameraActionRepository.AddendumCameraActionOperatingTime(entity);
+                await _dataBaseProvider.RecordTurnOffCamera(user, newVoiceState);
             }
             ///<summary>
             /// Stream turn on/off
             /// </summary>
-            if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsStreaming == true && oldVoiceState.IsStreaming == false)
+            if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsStreaming && oldVoiceState.IsStreaming == false)
             {
-                Console.WriteLine($"{user.Username} turn on the stream in {newVoiceState.VoiceChannel.Name}");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new StreamActionsEntity
-                {
-                    StatistisId = statisticId,
-                    StreamTurnOnTime = time
-                };
-                await _streamActionsRepository.AddStreamActionTurnOnTimeAsync(entity);
+                await _dataBaseProvider.RecordTurnOnStream(user, newVoiceState);
             }
-            else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsStreaming == false && oldVoiceState.IsStreaming == true)
+            else if(oldVoiceState.VoiceSessionId == newVoiceState.VoiceSessionId && newVoiceState.IsStreaming == false && oldVoiceState.IsStreaming)
             {
-                Console.WriteLine($"{user.Username} turn off the stream in {newVoiceState.VoiceChannel.Name}");
-                var userId = await _userRepository.GetUserIdByAlternateId(alternateId: user.Id, guildId: newVoiceState.VoiceChannel.Guild.Id);
-                var channelId = await _channelRepository.GetChannelIdByAlternateId(newVoiceState.VoiceChannel.Id);
-                var statisticId = _statisticRepository.GetStatisticIdByUserIdAndChannelId(userId, channelId).Result;
-                var time = GetTimeAsync().Result;
-
-                var entity = new StreamActionsEntity
-                {
-                    StatistisId = statisticId,
-                    StreamTurnOffTime = time
-                };
-                await _streamActionsRepository.AddendumStreamActionOperatingTime(entity);
+                await _dataBaseProvider.RecordTurnOffStream(user, newVoiceState);
             }
         }
 
-        private static async Task<DateTime> GetTimeAsync()
-        {
-            var time = DateTime.Now;
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-            {
-                try
-                {
-                    await socket.ConnectAsync("time.nist.gov", 13);
-                    using StreamReader rstream = new StreamReader(new NetworkStream(socket));
-                    string value = rstream.ReadToEnd().Trim();
-                    MatchCollection matches = Regex.Matches(value, @"((\d*)-(\d*)-(\d*))|((\d*):(\d*):(\d*))");
-                    string[] dd = matches[0].Value.Split('-');
-                    time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Parse($"{matches[1].Value} {dd[2]}.{dd[1]}.{dd[0]}"),
-                        TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
-                }
-                catch
-                {
-                    return time; //fail get date and time in network internet
-                }
-            }
-            return time;
-        }
+        
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _client.SetGameAsync("Отключение");
@@ -631,7 +345,7 @@ namespace DiscordBot.Services
 
         public void Dispose()
         {
-            _client?.Dispose();
+            _client.Dispose();
         }
     }
 }

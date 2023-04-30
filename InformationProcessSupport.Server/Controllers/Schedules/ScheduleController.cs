@@ -1,8 +1,8 @@
-﻿using InformationProcessSupport.Core.Groups;
-using InformationProcessSupport.Core.ScheduleParser;
+﻿using InformationProcessSupport.Core.ScheduleParser;
 using InformationProcessSupport.Server.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using InformationProcessSupport.Core.Domains;
 
 namespace InformationProcessSupport.Server.Controllers.Schedules
 {
@@ -11,12 +11,12 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
     public class ScheduleController : ControllerBase
     {
         private readonly IParserServices _parserServices;
-        private readonly IGroupRepository _groupRepository;
+        private readonly IStorageProvider _storageProvider;
 
-        public ScheduleController(IParserServices parserServices, IGroupRepository groupRepository)
+        public ScheduleController(IParserServices parserServices, IStorageProvider storageProvider)
         {
             _parserServices = parserServices;
-            _groupRepository = groupRepository;
+            _storageProvider = storageProvider;
         }
 
         [HttpPost("PostScheduleCollection")]
@@ -41,13 +41,17 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
                 {
                     await _parserServices.ParseScheduleCollection(entities);
                 }
-                catch(ArgumentException ex)
+                catch (ArgumentException ex)
                 {
                     return BadRequest(ex.Message);
                 }
                 catch (WebException ex)
                 {
                     return StatusCode(500, ex.Status);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, ex.Message);
                 }
 
                 return Ok();
@@ -67,7 +71,7 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
                     GroupName = x.GroupName,
                     GuildName = x.GuildName
                 }).ToList();
-                await _groupRepository.AddCollectionGroupAsync(entities);
+                await _storageProvider.AddGroupCollectionAsync(entities);
                 return Ok();
             }
         }

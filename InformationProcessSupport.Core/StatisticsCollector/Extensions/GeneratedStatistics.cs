@@ -1,4 +1,6 @@
-﻿namespace InformationProcessSupport.Core.StatisticsCollector.Extensions
+﻿using InformationProcessSupport.Core.Domains;
+
+namespace InformationProcessSupport.Core.StatisticsCollector.Extensions
 {
     internal class GeneratedStatistics
     {
@@ -61,29 +63,16 @@
         //ChannelEntity
         //----------------------------------------------------------------------------//
         public string ChannelName { get; set; }
-        //----------------------------------------------------------------------------//
-        //CameraActionEntity
-        //----------------------------------------------------------------------------//
-        public TimeSpan? CameraOperationTime { get; set; }
-        public DateTime? CameraTurnOnTime { get; set; }
-        public DateTime? CameraTurnOffTime { get; set; }
-        //----------------------------------------------------------------------------//
-        //MicrophoneEntity
-        //----------------------------------------------------------------------------//
-        public TimeSpan? MicrophoneOperatingTime { get; set; }
-        public DateTime MicrophoneTurnOnTime { get; set; }
-        public DateTime? MicrophoneTurnOffTime { get; set; }
-        //----------------------------------------------------------------------------//
-        //SelfDefenedEntity
-        //----------------------------------------------------------------------------//
-        public TimeSpan? SelfDeafenedOperationTime { get; set; }
-        public DateTime SelfDeafenedTurnOnTime { get; set; }
-        public DateTime? SelfDeafenedTurnOffTime { get; set; }
-        //----------------------------------------------------------------------------//
-        //StreamEntity
-        //----------------------------------------------------------------------------//
-        public TimeSpan? StreamOperationTime { get; set; }
-        public DateTime? StreamTurnOnTime { get; set; }
-        public DateTime? StreamTurnOffTime { get; set; }
+        public string SubjectName { get; set; }
+        public TimeSpan StartTimeTheSubject { get; set; }
+        public TimeSpan EndTimeTheSubject { get; set; }
+        public TimeSpan MicrophoneOperatingTime { get; set; }
+        public TimeSpan CameraOperatingTime { get; set; }
+        public TimeSpan StreamOperatingTime { get; set; }
+        public TimeSpan SelfDeafenedOperatingTime { get; set; }
+        public List<MicrophoneActionsEntity> MicrophoneActionsEntity { get; set; }
+        public List<CameraActionsEntity> CameraActionsEntity { get; set; }
+        public List<StreamActionsEntity> StreamActionsEntity { get; set; }
+        public List<SelfDeafenedActionsEntity> SelfDeafenedActionsEntities { get; set; }
     }
 }
