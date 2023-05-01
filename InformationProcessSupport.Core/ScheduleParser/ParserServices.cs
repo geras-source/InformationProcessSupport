@@ -30,8 +30,8 @@ namespace InformationProcessSupport.Core.ScheduleParser
                 var entity = new ScheduleEntity
                 {
                     SubjectName = schedule.SubjectName,
-                    StartTimeTheSubject = schedule.StartTimeTheSubject,
-                    EndTimeTheSubject = schedule.EndTimeTheSubject,
+                    StartTimeTheSubject = schedule.StartTimeTheSubject.TimeOfDay, //TODO: переделать на DateTime
+                    EndTimeTheSubject = schedule.EndTimeTheSubject.TimeOfDay,
                     DayOfTheWeek = day,
                     GroupId = groupId,
                     ChannelId = channelId
