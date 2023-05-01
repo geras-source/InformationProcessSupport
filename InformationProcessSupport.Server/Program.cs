@@ -1,5 +1,6 @@
 using InformationProcessSupport.Core;
 using InformationProcessSupport.Data;
+using Microsoft.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = new ConfigurationBuilder()
@@ -23,6 +24,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(policy =>
+    policy
+        .WithOrigins("https://localhost:44360", "http://localhost:44360")
+        .AllowAnyMethod()
+        .WithHeaders(HeaderNames.ContentType)
+    );
 
 app.UseHttpsRedirection();
 

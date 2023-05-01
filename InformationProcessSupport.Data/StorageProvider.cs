@@ -242,7 +242,7 @@ namespace InformationProcessSupport.Data
 
         public async Task<int> GetGroupIdByName(string groupName)
         {
-            var entity = await _context.GroupEntities.FirstOrDefaultAsync(x => x.GroupName == groupName);
+            var entity = await _context.GroupEntities.AsNoTracking().FirstOrDefaultAsync(x => x.GroupName == groupName);
 
             if (entity == null)
             {

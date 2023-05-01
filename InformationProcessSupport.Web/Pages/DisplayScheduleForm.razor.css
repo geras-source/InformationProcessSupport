@@ -5,9 +5,11 @@
     padding: 10px;
     border-radius: 20px;
 }
+
 .names {
     display: inline-block;
 }
+
 .name {
     margin: 0px 0px 8.5px 0px;
     float: left;
@@ -21,6 +23,7 @@
     vertical-align: middle;
     text-align: center;
 }
+
 .inputs {
     border: 0px;
     border-color: white;
@@ -30,6 +33,7 @@
     height: 34px;
     width: 150px;
 }
+
 .add-new-form {
     border: 0px;
     border-color: white;
@@ -53,6 +57,7 @@
     border-radius: 30px;
     float: right;
 }
+
 .submit {
     border: 0px;
     border-color: white;

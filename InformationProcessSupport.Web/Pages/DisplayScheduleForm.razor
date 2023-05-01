@@ -1,5 +1,58 @@
 ﻿<h3>DisplayScheduleForm</h3>
+@using InformationProcessSupport.Web.Dtos
+@inherits DisplayScheduleFormBase
 
-@code {
+@foreach(var item in Schedules)
+{
+    <div class="main">
+        <div class="names">
+            <div class="name">Предмет</div>
+            <div class="name">Начало</div>
+            <div class="name">Окончание</div>
+            <div class="name">Преподаватель</div>
+            <div class="name">Группа</div>
+            <div class="name">День недели</div>
+        </div>
+        <div>
+            <input type="text" class="inputs" @bind="item.SubjectName">
+            <input type="time" class="inputs" @bind="item.StartTimeTheSubject">
+            <input type="time" class="inputs" @bind="item.EndTimeTheSubject">
+           @* <select onchange=@DoStuff class="inputs">
+                @foreach (var template in templates)
+                {
+                    <option value=@template>@template</option>
+                }
+            </select>*@
+            <input type="text" class="inputs" @bind="item.Lecturer">
+            <input type="text" class="inputs" @bind="item.GroupName">
+            <input type="text" class="inputs" @bind="item.DayOfTheWeek">
+            @if (Schedules.IndexOf(item) >= CountForms - 1)
+            {
+                <button class="add-new-form btn btn-white btn-animate" @onclick="AddScheduleInCollection">+</button>
+            }
+        </div>
+    </div>
+}
+
+<div class="submit-background">
+    <button class="submit btn btn-white btn-animate" @onclick="(AddScheduleCollection_Click)">Отправить</button>
+</div>
+@functions {
+    List<string> templates = new List<string>() { "Maui" };
+    string selectedString = "Maui";
+
+    void DoStuff(ChangeEventArgs e)
+    {
+        selectedString = e.Value.ToString();
+        Console.WriteLine("It is definitely: " + selectedString);
+    }
+}
+@code
+{
+    void AddScheduleInCollection()
+    {
+        Schedules.Add(new ScheduleDto());
+        CountForms++;
+    }
 
 }

@@ -1,29 +1,9 @@
 ﻿@page "/schedule"
 <PageTitle>Расписание</PageTitle>
 
-<div class="main">
-    <div class="names">
-        <div class="name">Предмет</div>
-        <div class="name">Начало</div>
-        <div class="name">Окончание</div>
-        <div class="name">Преподаватель</div>
-        <div class="name">Группа</div>
-        <div class="name">День недели</div>
-    </div>
-    <div>
-        <input type="text" class="inputs">
-        <input type="time" class="inputs">
-        <input type="time" class="inputs">
-        <input type="text" class="inputs">
-        <input type="text" class="inputs">
-        <input type="text" class="inputs">
-        <button class="add-new-form btn btn-white btn-animate">+</button>
-    </div>
-</div>
 
-<div class="submit-background">
-    <button class="submit btn btn-white btn-animate">Отправить</button>
-</div>
+<DisplayScheduleForm></DisplayScheduleForm>
+
 
 
 @code {

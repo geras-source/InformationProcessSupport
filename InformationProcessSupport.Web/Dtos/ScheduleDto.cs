@@ -1,4 +1,4 @@
-﻿namespace InformationProcessSupport.Server.Dtos
+﻿namespace InformationProcessSupport.Web.Dtos
 {
     public class ScheduleDto
     {
@@ -9,11 +9,11 @@
         /// <summary>
         /// 
         /// </summary>
-        public DateTime StartTimeTheSubject { get; set; }
+        public DateTime? StartTimeTheSubject { get; set; }
         /// <summary>
         /// 
         /// </summary>
-        public DateTime EndTimeTheSubject { get; set; }
+        public DateTime? EndTimeTheSubject { get; set; }
         /// <summary>
         /// 
         /// </summary>
