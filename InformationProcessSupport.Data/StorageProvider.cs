@@ -85,7 +85,8 @@ namespace InformationProcessSupport.Data
                 UserId = it.UserId,
                 Name = it.Name,
                 Nickname = it.Nickname,
-                GroupId = it.GroupId
+                GroupId = it.GroupId,
+                Roles = it.Roles
             }).ToListAsync();
             return entities;
         }
