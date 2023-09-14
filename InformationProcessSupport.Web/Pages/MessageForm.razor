@@ -1,0 +1,31 @@
+﻿@using InformationProcessSupport.Web.Services
+@using System.ComponentModel.DataAnnotations
+<div class="simple-form">
+    <EditForm Model="_form" OnValidSubmit="SubmitForm">
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <InputText @bind-Value="_form.Message" class="form-control" type="date" />
+            <ValidationMessage For="@(() => _form.Message)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Запросить</button>
+    </EditForm>
+</div>
+
+@code {
+
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    readonly Form _form = new();
+
+    protected override void OnInitialized() => BlazoredModal.SetTitle("Введите дату для составления отчета");
+
+    async Task SubmitForm() => await BlazoredModal.CloseAsync(ModalResult.Ok(_form.Message));
+
+    public class Form
+    {
+        [Required(ErrorMessage = "Пожалуйста, введите дату")]
+        public string? Message { get; set; }
+    }
+}

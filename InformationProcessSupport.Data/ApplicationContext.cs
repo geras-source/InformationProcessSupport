@@ -30,5 +30,6 @@ namespace InformationProcessSupport.Data
         public DbSet<SelfDeafenedActionsModel> SelfDeafenedActionsEntities { get; set; }
         public DbSet<ScheduleModel> ScheduleEntities { get; set; }
         public DbSet<GroupModel> GroupEntities { get; set; }
+        public DbSet<UserAuthenticationModel> UserAuthenticationEntities { get; set; }
     }
 }

@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.10" PrivateAssets="all" />
+    <None Remove="Images\Shedule.webp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
+    <PackageReference Include="IgniteUI.Blazor.Trial" Version="22.2.65" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.19" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.14" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,9 +32,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Images\Shedule.webp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="Pages\Schedule.razor">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
 </Project>

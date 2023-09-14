@@ -17,12 +17,10 @@ namespace InformationProcessSupport.Data
         }
         public static IServiceCollection AddApplicationContext(this IServiceCollection services, IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-
             services.AddDbContext<ApplicationContext>(options =>
             {
                 options
-                .UseSqlServer(connectionString)
+                .UseSqlServer(configuration["DefaultConnection"])
                 .LogTo(Console.WriteLine, LogLevel.Critical);
             }, ServiceLifetime.Transient);
             return services;

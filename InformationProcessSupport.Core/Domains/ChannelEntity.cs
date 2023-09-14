@@ -26,21 +26,5 @@
         /// The id of the guild to which this channel belongs
         /// </summary>
         public ulong GuildId { get; set; }
-        /// <summary>
-        /// One-to-many collection (don't used)
-        /// </summary>
-        //public ICollection<StatisticEntity> StatisticEntities { get; set; }
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        //public ScheduleEntity ScheduleEntity { get; set; }
-        //public class ChannelConfiguration : IEntityTypeConfiguration<ChannelEntity>
-        //{
-        //    public void Configure(EntityTypeBuilder<ChannelEntity> builder)
-        //    {
-        //        builder.HasKey(x => x.ChannelId);
-        //        builder.HasAlternateKey(x => x.AlternateKey);
-        //    }
-        //}
     }
 }

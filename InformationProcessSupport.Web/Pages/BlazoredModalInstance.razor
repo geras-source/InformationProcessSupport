@@ -1,0 +1,12 @@
+﻿<div class="modal">
+
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <button class="close-button" @onclick="() => CancelAsync()">✖</button>
+        <h2>@Title</h2>
+        <CascadingValue Value="this" IsFixed="true">
+            @Content
+        </CascadingValue>
+    </div>
+
+</div>

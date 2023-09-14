@@ -1,5 +1,33 @@
-﻿<h3>DisplayGroupForm</h3>
+﻿@inherits DisplayGroupFormBase
+@foreach(var item in Groups)
+{
+    <div class="main">
+        <div class="names">
+            <div class="name">Название группы</div>
+            <div class="name">Название сервера</div>
+        </div>
+        <div>
+            <input type="text" class="inputs" @bind="item.GroupName">
+            <input type="text" class="inputs" @bind="item.GuildName">
+            @if (Groups.IndexOf(item) >= countForms - 1)
+            {
+                <button class="add-new-form btn btn-white btn-animate" @onclick="AddScheduleInCollection">+</button>
+            }
+        </div>
+    </div>
+}
 
-@code {
+<div class="submit-background">
+    <button class="submit btn btn-white btn-animate">Отправить</button>
+</div>
+
+@code
+{
+    int countForms = 1;
+    void AddScheduleInCollection()
+    {
+        Groups.Add(new GroupDto());
+        countForms++;
+    }
 
 }

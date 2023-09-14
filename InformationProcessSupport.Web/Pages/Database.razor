@@ -1,0 +1,46 @@
+﻿@page "/database"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inherits DatabaseBase
+<PageTitle>Display Database</PageTitle>
+
+<div class="btn-group">
+    @foreach (var item in types)
+    {
+        if (Array.IndexOf(types, item) == selected)
+        {
+            <button class="btn btn-primary">@GetNameFragment(item)</button>
+        }
+        else
+        {
+            <button class="btn btn-secondary" @onclick="() => selected = Array.IndexOf(types, item)">@GetNameFragment(item)</button>
+        }
+    }
+</div>
+
+@GetRenderFragment(types[selected])
+
+@code {
+    string GetNameFragment(Type type)
+    {
+        return type.Name switch
+        {
+            "DisplayUserTable" => "Таблица пользователей",
+            "DisplayChannelTable" => "Таблица каналов",
+            _ => "Error"
+        };
+    }
+
+    RenderFragment GetRenderFragment(Type type)
+    {
+        RenderFragment renderFragment = renderTreeBuilder =>
+        {
+            renderTreeBuilder.OpenComponent(0, type);
+            renderTreeBuilder.CloseComponent();
+        };
+        return renderFragment;
+    }
+    int selected;
+    ComponentBase[] components = { new DisplayUserTable(), new DisplayChannelTable() };
+    Type[] types => components.Select(c => c.GetType()).ToArray();
+}

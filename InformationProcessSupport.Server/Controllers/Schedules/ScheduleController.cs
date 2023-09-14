@@ -20,7 +20,7 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
         }
 
         [HttpPost("PostScheduleCollection")]
-        public async Task<ActionResult> PostScheduleCollectionToParsing([FromBody] ICollection<ScheduleDto> scheduleCollection) // Done
+        public async Task<ActionResult> PostScheduleCollectionToParsing([FromBody] IEnumerable<ScheduleDto> scheduleCollection) // Done
         {
             if (scheduleCollection == null)
             {
@@ -58,7 +58,7 @@ namespace InformationProcessSupport.Server.Controllers.Schedules
             }
         }
         [HttpPost("PostGroupCollection")]
-        public async Task<ActionResult> PostGroupToDB([FromBody] ICollection<GroupDto> groupCollection) //Done
+        public async Task<ActionResult> PostGroupToDB([FromBody] IEnumerable<GroupDto> groupCollection) //Done
         {
             if (groupCollection == null)
             {

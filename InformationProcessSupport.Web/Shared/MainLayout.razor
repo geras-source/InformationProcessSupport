@@ -1,15 +1,25 @@
-﻿@inherits LayoutComponentBase
+﻿@using InformationProcessSupport.Web.Pages
 
+@inherits LayoutComponentBase
+<BlazoredModal/>
 <div class="page">
     <div class="sidebar">
-        <NavMenu />
+        <NavMenu/>
     </div>
 
     <main>
         <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            <AuthorizeView>
+                <NotAuthorized>
+                    <a href="/login" class="about">Авторизация</a>
+                </NotAuthorized>
+                <Authorized>
+                    <a href="/logout" class="about">Выход</a>
+                </Authorized>
+            </AuthorizeView>
         </div>
-
+        
+       
         <article class="content px-4">
             @Body
         </article>
