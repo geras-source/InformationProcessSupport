@@ -1,6 +1,4 @@
-﻿<h3>DisplayScheduleForm</h3>
-@using InformationProcessSupport.Web.Dtos
-@inherits DisplayScheduleFormBase
+﻿@inherits DisplayScheduleFormBase
 
 @foreach(var item in Schedules)
 {
@@ -17,7 +15,7 @@
             <input type="text" class="inputs" @bind="item.SubjectName">
             <input type="time" class="inputs" @bind="item.StartTimeTheSubject">
             <input type="time" class="inputs" @bind="item.EndTimeTheSubject">
-           @* <select onchange=@DoStuff class="inputs">
+            @* <select onchange=@DoStuff class="inputs">
                 @foreach (var template in templates)
                 {
                     <option value=@template>@template</option>
@@ -41,6 +39,7 @@
     List<string> templates = new List<string>() { "Maui" };
     string selectedString = "Maui";
 
+
     void DoStuff(ChangeEventArgs e)
     {
         selectedString = e.Value.ToString();
@@ -49,10 +48,17 @@
 }
 @code
 {
+    RenderFragment dialogContent;
     void AddScheduleInCollection()
     {
         Schedules.Add(new ScheduleDto());
         CountForms++;
+
+        dialogContent = builder =>
+        {
+            builder.OpenComponent(0, typeof(ModalWindow));
+            builder.CloseComponent();
+        };
     }
 
 }

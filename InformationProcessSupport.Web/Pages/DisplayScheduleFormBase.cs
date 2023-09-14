@@ -6,16 +6,8 @@ namespace InformationProcessSupport.Web.Pages
 {
     public class DisplayScheduleFormBase : ComponentBase
     {
-        [Parameter] 
         public int CountForms { get; set; } = 1;
-        [Parameter]
-        public List<ScheduleDto> Schedules { get; set; } = new List<ScheduleDto>()
-        {
-            new ScheduleDto()
-            {
-                
-            }
-        };
+        public List<ScheduleDto> Schedules { get; set; } = new() { new ScheduleDto() };
         [Inject]
         private IScheduleServices ScheduleServices { get; set; }
 

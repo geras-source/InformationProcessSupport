@@ -1,0 +1,74 @@
+﻿@page "/statistic"
+
+@using InformationProcessSupport.Web.Services
+@inherits StatisticBase
+@inject IJSRuntime JSRuntime
+<PageTitle>Статистика</PageTitle>
+
+<div class="btn-group">
+        @foreach (var item in types)
+        {
+            if (Array.IndexOf(types, item) == selected)
+            {
+                <button class="btn btn-primary">@GetNameFragment(item)</button>
+            }
+            else
+            {
+                <button class="btn btn-secondary" @onclick="() => selected = Array.IndexOf(types, item)">@GetNameFragment(item)</button>
+            }
+        }
+    </div>
+
+<button class="btn btn-primary" @onclick="DisplayModalWindow">Создать отчет по дате</button>
+
+@GetRenderFragment(types[selected])
+
+
+@code {
+    RenderFragment GetRenderFragment(Type type)
+    {
+        RenderFragment renderFragment = renderTreeBuilder =>
+        {
+            renderTreeBuilder.OpenComponent(0, type);
+            renderTreeBuilder.CloseComponent();
+        };
+        return renderFragment;
+    }
+
+    string GetNameFragment(Type type)
+    {
+        return type.Name switch
+        {
+            "StatisticByGroup" => "Групповая статистика",
+            "StatisticByUser" => "Статистика по студенту",
+            _ => "Error"
+            };
+    }
+
+    int selected;
+    ComponentBase[] components = { new StatisticByGroup(), new StatisticByUser() };
+    Type[] types => components.Select(c => c.GetType()).ToArray();
+
+    private async Task DisplayModalWindow()
+    {
+        var messageForm = ModalService.Show<MessageForm>();
+        var result = await messageForm.Result;
+        
+        if(result.Data != null)
+        await DownLoadStatistic(result.Data);
+    }
+
+}
+@code {
+    //19-04-2023
+    private async Task DownLoadStatistic(object date)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"api/Statistic/CreateReportByDate/{date}");
+
+        var response = await httpClient.SendAsync(request);
+        var excelStream = await response.Content.ReadAsStreamAsync();
+        using var streamRef = new DotNetStreamReference(stream: excelStream);
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", $"Report {date}.xlsx", streamRef);
+    }
+        
+}

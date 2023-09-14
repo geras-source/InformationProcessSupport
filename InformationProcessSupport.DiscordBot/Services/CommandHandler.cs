@@ -6,8 +6,12 @@ using System.Reflection;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Discord.Net;
 using InformationProcessSupport.DiscordBot;
 using InformationProcessSupport.Core.Domains;
+using InformationProcessSupport.Core.StatisticsCollector;
+using Newtonsoft.Json;
+using DiscordBot.Modules;
 
 namespace DiscordBot.Services
 {
@@ -21,10 +25,11 @@ namespace DiscordBot.Services
         private readonly IStorageProvider _storageProvider;
         //private readonly Discord.ConnectionState _connectionState;
         private readonly DataBaseProvider _dataBaseProvider;
-        
+        private readonly IStatisticCollectorServices _statistic;
+
         public CommandHandler(IServiceProvider provider, DiscordSocketClient client, CommandService service,
                                 IConfiguration config, IStorageProvider storageProvider,
-                                DataBaseProvider dataBaseProvider)
+                                DataBaseProvider dataBaseProvider, IStatisticCollectorServices statistic)
         {
             _provider = provider;
             _client = client;
@@ -32,6 +37,7 @@ namespace DiscordBot.Services
             _config = config;
             _storageProvider = storageProvider;
             _dataBaseProvider = dataBaseProvider;
+            _statistic = statistic;
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
@@ -164,6 +170,22 @@ namespace DiscordBot.Services
                 //    Console.WriteLine(json);
                 //}
                 //await data.CreateRoleAsync(name: "Test", color: Color.Teal);
+
+                var guildCommand = new Discord.SlashCommandBuilder()
+                    .WithName("get-report")
+                    .WithDescription("Получение отчета по дате.")
+                    .AddOption("date", ApplicationCommandOptionType.String, "Нужная дата", isRequired: true);
+
+
+                try
+                {
+                    await _client.Rest.CreateGuildCommand(guildCommand.Build(), data.Id);
+                }
+                catch (ApplicationCommandException exception)
+                {
+                    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
+                    Console.WriteLine(json);
+                }
             }
             stopWatch.Stop();
             TimeSpan timeSpan = stopWatch.Elapsed;
@@ -181,7 +203,6 @@ namespace DiscordBot.Services
 
         private async Task _client_SlashCommandExecuted(SocketSlashCommand arg)
         {
-            await arg.RespondAsync($"You executed {arg.Data.Name}", ephemeral: true);
             //var embed = new EmbedBuilder()
             //    .WithColor(Color.DarkPurple)
             //    .WithTitle("Information")

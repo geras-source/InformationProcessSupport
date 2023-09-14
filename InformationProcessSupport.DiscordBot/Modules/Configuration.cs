@@ -11,24 +11,38 @@ using DiscordBot.Services;
 using Microsoft.Extensions.Hosting.Internal;
 using System.Xml.Linq;
 using System.Data;
+using InformationProcessSupport.Core.StatisticsCollector;
+using Irony.Parsing;
 
 namespace DiscordBot.Modules
 {
     //[Group("sample")]
     public class Configuration : ModuleBase<SocketCommandContext>
     {
-        [Command("info")]
-        private async Task Info(SocketGuildUser? socketGuildUser = null)
-        {
-            var embed = new EmbedBuilder()
-                .WithColor(Color.DarkPurple)
-                .WithTitle("Information")
-                .WithImageUrl(Context.Guild?.GetUser(266642180720820224).GetAvatarUrl())
-                .AddField("Комманды", "!test 'Channel name'\n !mute \n", false)
-                .AddField("Created by:", Context.Guild?.GetUser(266642180720820224), true)
-                .AddField("Powered by:", ".NET Framework", true);
+        private readonly IStatisticCollectorServices _statistic;
 
-            await Context.Channel.SendMessageAsync(embed: embed.Build());
+        public Configuration(IStatisticCollectorServices statistic)
+        {
+            _statistic = statistic;
+        }
+        [Command("info")]
+        public async Task Info(SocketGuildUser? socketGuildUser = null)
+        {
+            var parsedDate = DateTime.Parse("2023-04-19");
+            var res = await _statistic.CreateReportByDate(parsedDate);
+            var memoryStream = new MemoryStream();
+            res.SaveAs(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            //var embed = new EmbedBuilder()
+            //    .WithColor(Color.DarkPurple)
+            //    .WithTitle("Information")
+            //    .WithImageUrl(Context.Guild?.GetUser(266642180720820224).GetAvatarUrl())
+            //    .AddField("Комманды", "!test 'Channel name'\n !mute \n", false)
+            //    .AddField("Created by:", Context.Guild?.GetUser(266642180720820224), true)
+            //    .AddField("Powered by:", ".NET Framework", true);
+
+            await Context.Channel.SendFileAsync(memoryStream, "test");
         }
         //[Command("test"/*, RunMode = RunMode.Async*/)]  
         //private async Task CommandsHandler(string ch)

@@ -1,0 +1,25 @@
+﻿<h3>ModalWindow</h3>
+@page "/test"
+<PageTitle></PageTitle>
+
+@if (isClose)
+{
+    <div class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="close-button" @onclick="Close">✖</button>
+            <h2>Модальное окно</h2>
+            <p>Это модальное окно.</p>
+        </div>
+    </div>
+}
+
+@code {
+
+    private bool isClose = true;
+
+    private void Close()
+    {
+        isClose = false;
+    }
+}

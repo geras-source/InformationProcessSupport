@@ -30,8 +30,10 @@ var builder = new HostBuilder()
                        LogLevel = LogSeverity.Critical,
                        AlwaysDownloadUsers = false,
                        MessageCacheSize = 200,
-                       GatewayIntents = GatewayIntents.All
-                       //ConnectionTimeout = 1
+                       GatewayIntents = GatewayIntents.All,
+                       UseInteractionSnowflakeDate = false,
+                       HandlerTimeout = 100000000,
+                       ConnectionTimeout = 100000
                    };
 
 #pragma warning disable CS8601 // Возможно, назначение-ссылка, допускающее значение NULL.
@@ -49,7 +51,7 @@ var builder = new HostBuilder()
                    services
                        .AddServices()
                        .AddRepositories()
-                       .AddApplicationContext(config);
+                       .AddApplicationContext(config.GetSection("ConnectionStrings"));
                })
                .UseConsoleLifetime();
 

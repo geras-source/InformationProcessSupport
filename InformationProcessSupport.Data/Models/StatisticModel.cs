@@ -29,7 +29,7 @@ namespace InformationProcessSupport.Data.Models
             public void Configure(EntityTypeBuilder<StatisticModel> builder)
             {
                 builder.HasKey(x => x.StatisticId);
-
+                
                 builder
                     .HasOne(x => x.UserEntity)
                     .WithMany(x => x.StatisticsEntity)
